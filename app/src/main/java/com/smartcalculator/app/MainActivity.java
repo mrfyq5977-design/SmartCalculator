@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.*;
 import android.graphics.drawable.GradientDrawable;
 import java.text.DecimalFormat;
@@ -46,16 +45,17 @@ public class MainActivity extends Activity {
         resultView.setText("0");
 
         root.addView(expressionView,
-            new LinearLayout.LayoutParams(-1, 65));
+                new LinearLayout.LayoutParams(-1, 65));
+
         root.addView(resultView,
-            new LinearLayout.LayoutParams(-1, 75));
+                new LinearLayout.LayoutParams(-1, 75));
 
         String[][] keys = {
             {"AC", "⌫", "%", "÷"},
             {"7", "8", "9", "×"},
             {"4", "5", "6", "−"},
             {"1", "2", "3", "+"},
-            {"√", "0", ".", "="}
+            {"√", "00", "0", "000"}
         };
 
         for (String[] row : keys) {
@@ -64,43 +64,62 @@ public class MainActivity extends Activity {
             line.setOrientation(LinearLayout.HORIZONTAL);
 
             for (String key : row) {
-                Button button = new Button(this);
-                button.setText(key);
-                button.setTextSize(21);
-                button.setAllCaps(false);
-                button.setPadding(0, 0, 0, 0);
-
-                boolean operation =
-                    key.equals("÷") || key.equals("×") ||
-                    key.equals("−") || key.equals("+") ||
-                    key.equals("=") || key.equals("√") ||
-                    key.equals("%") || key.equals("AC") ||
-                    key.equals("⌫");
-
-                button.setTextColor(operation ? GOLD : WHITE);
-
-                GradientDrawable shape = new GradientDrawable();
-                shape.setColor(Color.rgb(20, 20, 20));
-                shape.setCornerRadius(14);
-                shape.setStroke(1, Color.rgb(65, 65, 65));
-                button.setBackground(shape);
-
-                LinearLayout.LayoutParams params =
-                    new LinearLayout.LayoutParams(0, 62, 1);
-                params.setMargins(4, 5, 4, 5);
-
-                line.addView(button, params);
-                button.setOnClickListener(v -> press(key));
+                addCalculatorButton(line, key, 1);
             }
 
             root.addView(line,
-                new LinearLayout.LayoutParams(-1, 72));
+                    new LinearLayout.LayoutParams(-1, 66));
         }
+
+        // الصف الأخير: زر النقطة وزر المساواة
+        LinearLayout lastRow = new LinearLayout(this);
+        lastRow.setGravity(Gravity.CENTER);
+        lastRow.setOrientation(LinearLayout.HORIZONTAL);
+
+        addCalculatorButton(lastRow, ".", 1);
+        addCalculatorButton(lastRow, "=", 1);
+
+        root.addView(lastRow,
+                new LinearLayout.LayoutParams(-1, 66));
 
         setContentView(root);
     }
 
+    private void addCalculatorButton(
+            LinearLayout line, String key, int weight) {
+
+        Button button = new Button(this);
+        button.setText(key);
+        button.setTextSize(22);
+        button.setAllCaps(false);
+        button.setPadding(0, 0, 0, 0);
+
+        boolean operation =
+                key.equals("÷") || key.equals("×") ||
+                key.equals("−") || key.equals("+") ||
+                key.equals("=") || key.equals("√") ||
+                key.equals("%") || key.equals("AC") ||
+                key.equals("⌫");
+
+        button.setTextColor(operation ? GOLD : WHITE);
+
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(Color.rgb(20, 20, 20));
+        shape.setCornerRadius(14);
+        shape.setStroke(1, GOLD);
+        button.setBackground(shape);
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(0, 56, weight);
+
+        params.setMargins(4, 4, 4, 4);
+
+        line.addView(button, params);
+        button.setOnClickListener(v -> press(key));
+    }
+
     private void press(String key) {
+
         if (key.equals("AC")) {
             current = "";
             expressionView.setText("");
@@ -131,13 +150,16 @@ public class MainActivity extends Activity {
         if (key.equals("√")) {
             try {
                 double value = calculate(current);
+
                 if (value < 0) {
                     resultView.setText("خطأ");
                     return;
                 }
+
                 current = format(Math.sqrt(value));
                 expressionView.setText("√");
                 resultView.setText(current);
+
             } catch (Exception e) {
                 resultView.setText("خطأ");
             }
@@ -156,6 +178,7 @@ public class MainActivity extends Activity {
             return;
         }
 
+        // إضافة الأرقام والأصفار
         current += key;
         expressionView.setText(current);
     }
@@ -164,6 +187,7 @@ public class MainActivity extends Activity {
         if (Double.isNaN(value) || Double.isInfinite(value)) {
             return "خطأ";
         }
+
         return new DecimalFormat("0.##########").format(value);
     }
 
@@ -171,10 +195,12 @@ public class MainActivity extends Activity {
         if (input == null || input.trim().isEmpty()) {
             return 0;
         }
+
         return new Parser(input).parse();
     }
 
     private static class Parser {
+
         private final String s;
         private int pos = -1;
         private int ch;
@@ -191,40 +217,57 @@ public class MainActivity extends Activity {
 
         boolean eat(int c) {
             while (ch == ' ') nextChar();
+
             if (ch == c) {
                 nextChar();
                 return true;
             }
+
             return false;
         }
 
         double parse() {
             nextChar();
             double x = expression();
+
             if (pos < s.length()) {
                 throw new RuntimeException("خطأ");
             }
+
             return x;
         }
 
         double expression() {
             double x = term();
+
             while (true) {
-                if (eat('+')) x += term();
-                else if (eat('-')) x -= term();
-                else return x;
+                if (eat('+')) {
+                    x += term();
+                } else if (eat('-')) {
+                    x -= term();
+                } else {
+                    return x;
+                }
             }
         }
 
         double term() {
             double x = factor();
+
             while (true) {
-                if (eat('*')) x *= factor();
-                else if (eat('/')) {
+                if (eat('*')) {
+                    x *= factor();
+                } else if (eat('/')) {
                     double d = factor();
-                    if (d == 0) throw new RuntimeException("قسمة على صفر");
+
+                    if (d == 0) {
+                        throw new RuntimeException("قسمة على صفر");
+                    }
+
                     x /= d;
-                } else return x;
+                } else {
+                    return x;
+                }
             }
         }
 
@@ -237,12 +280,19 @@ public class MainActivity extends Activity {
 
             if (eat('(')) {
                 x = expression();
-                if (!eat(')')) throw new RuntimeException("قوس");
+
+                if (!eat(')')) {
+                    throw new RuntimeException("قوس");
+                }
+
             } else if ((ch >= '0' && ch <= '9') || ch == '.') {
+
                 while ((ch >= '0' && ch <= '9') || ch == '.') {
                     nextChar();
                 }
+
                 x = Double.parseDouble(s.substring(start, pos));
+
             } else {
                 throw new RuntimeException("رقم غير صحيح");
             }
