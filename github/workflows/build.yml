@@ -1,45 +1,12 @@
 
-name: Build Smart Calculator APK
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Setup Gradle 8.9
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
-      - name: Inspect AndroidManifest
+      - name: Diagnose Manifest
         run: |
-          echo "Checking manifest file"
-          file app/src/main/AndroidManifest.xml
-          cat -A app/src/main/AndroidManifest.xml
+          echo "=== Manifest files ==="
+          find . -name AndroidManifest.xml -type f
+          echo "=== Main manifest bytes ==="
+          xxd app/src/main/AndroidManifest.xml
+          echo "=== XML validation ==="
+          python3 -c "import xml.etree.ElementTree as E; E.parse('app/src/main/AndroidManifest.xml'); print('XML IS VALID')"
 
       - name: Build APK
-        run: gradle assembleDebug --stacktrace --info
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: SmartCalculator-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+        run: gradle assembleDebug --stacktrace
