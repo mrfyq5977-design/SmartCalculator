@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,8 +28,6 @@ public class MainActivity extends Activity {
     private String input = "";
     private boolean resultShown = false;
 
-    private LinearLayout calculatorScreen;
-
     private final String[][] keys = {
         {"AC", "⌫", "%", "÷"},
         {"7", "8", "9", "×"},
@@ -50,7 +47,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        showHome();
+
+        getWindow().setStatusBarColor(BLACK);
+        getWindow().setNavigationBarColor(BLACK);
+
+        showCalculator();
     }
 
     private GradientDrawable background(int color, int radius) {
@@ -61,11 +62,7 @@ public class MainActivity extends Activity {
         return drawable;
     }
 
-    private TextView text(
-        String value,
-        int size,
-        int color
-    ) {
+    private TextView text(String value, int size, int color) {
         TextView view = new TextView(this);
         view.setText(value);
         view.setTextSize(size);
@@ -74,14 +71,10 @@ public class MainActivity extends Activity {
         return view;
     }
 
-    private Button makeButton(
-        String value,
-        int color,
-        int textColor
-    ) {
+    private Button makeButton(String value, int color, int textColor) {
         Button button = new Button(this);
         button.setText(value);
-        button.setTextSize(19);
+        button.setTextSize(16);
         button.setTextColor(textColor);
         button.setAllCaps(false);
         button.setTypeface(null, Typeface.BOLD);
@@ -89,166 +82,29 @@ public class MainActivity extends Activity {
         return button;
     }
 
-    // الواجهة الخارجية الذهبية
-    private void showHome() {
-
-        getWindow().setStatusBarColor(GOLD);
-        getWindow().setNavigationBarColor(GOLD);
-        getWindow().getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR |
-            View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
-        );
-
-        LinearLayout home = new LinearLayout(this);
-        home.setOrientation(LinearLayout.VERTICAL);
-        home.setGravity(Gravity.CENTER);
-        home.setPadding(dp(24), dp(25), dp(24), dp(25));
-        home.setBackgroundColor(GOLD);
-
-        setContentView(home);
-
-        TextView symbol = text("✦", 75, BLACK);
-        symbol.setTypeface(null, Typeface.BOLD);
-
-        home.addView(symbol, new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(110)
-        ));
-
-        TextView title = text(
-            "الآلة الحاسبة الذكية",
-            29,
-            BLACK
-        );
-        title.setTypeface(null, Typeface.BOLD);
-
-        home.addView(title);
-
-        TextView subtitle = text(
-            "حساباتك بسهولة ودقة",
-            17,
-            BLACK
-        );
-
-        LinearLayout.LayoutParams subParams =
-            new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(55)
-            );
-
-        home.addView(subtitle, subParams);
-
-        LinearLayout panel = new LinearLayout(this);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setGravity(Gravity.CENTER);
-        panel.setPadding(dp(18), dp(25), dp(18), dp(25));
-        panel.setBackground(background(BLACK, 25));
-
-        LinearLayout.LayoutParams panelParams =
-            new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(210)
-            );
-
-        panelParams.setMargins(0, dp(25), 0, dp(25));
-        home.addView(panel, panelParams);
-
-        TextView panelTitle = text(
-            "مرحباً بك",
-            25,
-            LIGHT_GOLD
-        );
-        panelTitle.setTypeface(null, Typeface.BOLD);
-
-        panel.addView(panelTitle);
-
-        TextView panelDescription = text(
-            "واجهة أنيقة باللون الذهبي والأسود",
-            15,
-            Color.WHITE
-        );
-
-        panel.addView(panelDescription);
-
-        Button start = makeButton(
-            "ابدأ الحساب",
-            GOLD,
-            BLACK
-        );
-
-        LinearLayout.LayoutParams startParams =
-            new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(60)
-            );
-
-        startParams.setMargins(dp(10), dp(20), dp(10), 0);
-        panel.addView(start, startParams);
-
-        start.setOnClickListener(v -> showCalculator());
-
-        TextView footer = text(
-            "SMART CALCULATOR",
-            14,
-            BLACK
-        );
-
-        home.addView(footer);
-    }
-
-    // الواجهة الداخلية السوداء والذهبية
     private void showCalculator() {
 
-        getWindow().setStatusBarColor(BLACK);
-        getWindow().setNavigationBarColor(BLACK);
-        getWindow().getDecorView().setSystemUiVisibility(0);
+        LinearLayout screen = new LinearLayout(this);
+        screen.setOrientation(LinearLayout.VERTICAL);
+        screen.setPadding(dp(12), dp(12), dp(12), dp(12));
+        screen.setBackgroundColor(BLACK);
 
-        calculatorScreen = new LinearLayout(this);
-        calculatorScreen.setOrientation(LinearLayout.VERTICAL);
-        calculatorScreen.setPadding(
-            dp(12), dp(12), dp(12), dp(12)
-        );
-        calculatorScreen.setBackgroundColor(BLACK);
-
-        setContentView(calculatorScreen);
-
-        LinearLayout top = new LinearLayout(this);
-        top.setGravity(Gravity.CENTER_VERTICAL);
-        top.setOrientation(LinearLayout.HORIZONTAL);
-
-        calculatorScreen.addView(top,
-            new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(55)
-            )
-        );
-
-        Button back = makeButton(
-            "رجوع",
-            GOLD,
-            BLACK
-        );
-
-        top.addView(back, new LinearLayout.LayoutParams(
-            dp(85),
-            dp(48)
-        ));
-
-        back.setOnClickListener(v -> showHome());
+        setContentView(screen);
 
         TextView heading = text(
-            "الآلة الحاسبة",
+            "الآلة الحاسبة الذكية",
             21,
             LIGHT_GOLD
         );
 
         heading.setTypeface(null, Typeface.BOLD);
 
-        top.addView(heading, new LinearLayout.LayoutParams(
-            0,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            1
-        ));
+        screen.addView(heading,
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(55)
+            )
+        );
 
         LinearLayout display = new LinearLayout(this);
         display.setOrientation(LinearLayout.VERTICAL);
@@ -259,17 +115,16 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams displayParams =
             new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(125)
+                dp(120)
             );
 
         displayParams.setMargins(0, dp(12), 0, dp(15));
+        screen.addView(display, displayParams);
 
-        calculatorScreen.addView(display, displayParams);
-
-        expressionView = text("", 20, LIGHT_GOLD);
+        expressionView = text("", 17, LIGHT_GOLD);
         expressionView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
 
-        resultView = text("0", 34, Color.WHITE);
+        resultView = text("0", 29, LIGHT_GOLD);
         resultView.setTypeface(null, Typeface.BOLD);
         resultView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
 
@@ -289,7 +144,7 @@ public class MainActivity extends Activity {
                 );
 
             rowParams.setMargins(0, dp(2), 0, dp(2));
-            calculatorScreen.addView(line, rowParams);
+            screen.addView(line, rowParams);
 
             for (String key : row) {
 
@@ -357,6 +212,7 @@ public class MainActivity extends Activity {
             if (!input.isEmpty()) {
                 input = input.substring(0, input.length() - 1);
             }
+
             resultShown = false;
             updateDisplay();
             return;
@@ -378,16 +234,19 @@ public class MainActivity extends Activity {
         }
 
         if ("0123456789".contains(key)) {
+
             if (resultShown) {
                 input = "";
                 resultShown = false;
             }
+
             input += key;
             updateDisplay();
             return;
         }
 
         if (key.equals(".")) {
+
             if (resultShown) {
                 input = "";
                 resultShown = false;
@@ -634,16 +493,6 @@ public class MainActivity extends Activity {
             return Double.parseDouble(
                 text.substring(start, position)
             );
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (calculatorScreen != null &&
-            calculatorScreen.getParent() != null) {
-            showHome();
-        } else {
-            super.onBackPressed();
         }
     }
 }
