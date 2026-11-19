@@ -5,536 +5,531 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.view.Gravity;
-import android.widget.*;
-import android.text.InputType;
 import android.animation.ValueAnimator;
 import android.animation.ArgbEvaluator;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Button;
+import android.view.ViewGroup;
+import android.util.TypedValue;
+
+import java.math.BigDecimal;
 
 public class MainActivity extends Activity {
 
     private TextView expressionView;
     private TextView resultView;
-    private EditText writingArea;
 
-    private String current = "";
-    private String operator = "";
-    private String expression = "";
+    private String input = "";
+    private boolean resultShown = false;
 
-    private double first = 0;
-    private boolean newNumber = true;
-    private boolean showingResult = false;
-
+    private LinearLayout root;
     private ValueAnimator backgroundAnimator;
-    private GradientDrawable outerBackground;
 
-    private final int WHITE = Color.WHITE;
-    private final int BLUE = Color.rgb(25, 130, 210);
-    private final int GOLD = Color.rgb(230, 180, 75);
-    private final int GREEN = Color.rgb(65, 220, 155);
+    private final String[][] keys = {
+        {"AC", "⌫", "%", "÷"},
+        {"7", "8", "9", "×"},
+        {"4", "5", "6", "−"},
+        {"1", "2", "3", "+"},
+        {"√", "0", ".", "="}
+    };
 
     private int dp(float value) {
-        return (int) (value * getResources()
-                .getDisplayMetrics().density + 0.5f);
-    }
-
-    private GradientDrawable rounded(
-            int[] colors, int radius, int strokeColor) {
-
-        GradientDrawable shape = new GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                colors
+        return (int) TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            value,
+            getResources().getDisplayMetrics()
         );
-
-        shape.setCornerRadius(dp(radius));
-
-        if (strokeColor != 0) {
-            shape.setStroke(dp(1), strokeColor);
-        }
-
-        return shape;
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LinearLayout root = new LinearLayout(this);
+        root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(22), dp(16), dp(12));
+        root.setPadding(dp(16), dp(25), dp(16), dp(16));
 
-        outerBackground = new GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                new int[]{
-                    Color.rgb(8, 17, 42),
-                    Color.rgb(18, 35, 75),
-                    Color.rgb(30, 20, 65)
-                }
+        setContentView(root);
+
+        startBackgroundAnimation();
+        createInterface();
+    }
+
+    private void startBackgroundAnimation() {
+        final int[] colors = {
+            Color.rgb(10, 25, 55),
+            Color.rgb(20, 75, 105),
+            Color.rgb(70, 35, 105),
+            Color.rgb(10, 80, 85)
+        };
+
+        backgroundAnimator = ValueAnimator.ofObject(
+            new ArgbEvaluator(),
+            colors[0],
+            colors[1],
+            colors[2],
+            colors[3],
+            colors[0]
         );
 
-        outerBackground.setCornerRadius(dp(0));
-        root.setBackground(outerBackground);
+        backgroundAnimator.setDuration(10000);
+        backgroundAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        backgroundAnimator.setRepeatMode(ValueAnimator.RESTART);
 
-        // عنوان التطبيق
-        TextView title = new TextView(this);
-        title.setText("✦ الحاسبة الذكية ✦");
-        title.setTextColor(GOLD);
-        title.setTextSize(27);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0, dp(5), 0, dp(8));
-        title.setShadowLayer(dp(12), 0, 0, BLUE);
+        backgroundAnimator.addUpdateListener(animation -> {
+            int color = (int) animation.getAnimatedValue();
 
-        root.addView(title);
-
-        TextView subtitle = new TextView(this);
-        subtitle.setText("SMART CALCULATOR");
-        subtitle.setTextColor(Color.LTGRAY);
-        subtitle.setTextSize(10);
-        subtitle.setGravity(Gravity.CENTER);
-        root.addView(subtitle);
-
-        // شاشة العمليات والنتائج
-        LinearLayout screen = new LinearLayout(this);
-        screen.setOrientation(LinearLayout.VERTICAL);
-        screen.setGravity(Gravity.CENTER_VERTICAL);
-        screen.setPadding(dp(18), dp(12), dp(18), dp(12));
-
-        screen.setBackground(rounded(
+            GradientDrawable background = new GradientDrawable(
+                GradientDrawable.Orientation.TL_BR,
                 new int[]{
-                    Color.rgb(25, 45, 75),
-                    Color.rgb(12, 27, 53)
-                },
-                22,
-                Color.rgb(50, 130, 190)
+                    color,
+                    Color.rgb(12, 20, 45)
+                }
+            );
+
+            root.setBackground(background);
+        });
+
+        backgroundAnimator.start();
+    }
+
+    private GradientDrawable shape(
+        int color,
+        int radius
+    ) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(color);
+        drawable.setCornerRadius(dp(radius));
+        drawable.setStroke(dp(1), Color.argb(45, 255, 255, 255));
+        return drawable;
+    }
+
+    private TextView makeText(
+        String text,
+        int size,
+        int color
+    ) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextSize(size);
+        view.setTextColor(color);
+        view.setGravity(Gravity.CENTER);
+        return view;
+    }
+
+    private void createInterface() {
+
+        TextView title = makeText(
+            "الآلة الحاسبة الذكية",
+            25,
+            Color.WHITE
+        );
+
+        title.setTypeface(null, 1);
+
+        root.addView(title, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            dp(65)
         ));
 
-        expressionView = new TextView(this);
-        expressionView.setText("");
-        expressionView.setTextColor(Color.rgb(190, 210, 235));
-        expressionView.setTextSize(23);
-        expressionView.setGravity(Gravity.RIGHT);
+        LinearLayout display = new LinearLayout(this);
+        display.setOrientation(LinearLayout.VERTICAL);
+        display.setGravity(Gravity.CENTER_VERTICAL);
+        display.setPadding(dp(18), dp(12), dp(18), dp(12));
+        display.setBackground(shape(
+            Color.rgb(22, 37, 58),
+            22
+        ));
 
-        screen.addView(expressionView);
+        LinearLayout.LayoutParams displayParams =
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(135)
+            );
 
-        resultView = new TextView(this);
-        resultView.setText("0");
-        resultView.setTextColor(GREEN);
-        resultView.setTextSize(38);
-        resultView.setGravity(Gravity.RIGHT);
-        resultView.setPadding(0, dp(8), 0, dp(4));
-        resultView.setShadowLayer(dp(8), 0, 0, GREEN);
+        displayParams.setMargins(0, dp(10), 0, dp(20));
+        root.addView(display, displayParams);
 
-        screen.addView(resultView);
+        expressionView = makeText("", 22, Color.LTGRAY);
+        expressionView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
 
-        LinearLayout.LayoutParams screenParams =
-                new LinearLayout.LayoutParams(-1, dp(125));
+        resultView = makeText("0", 34, Color.WHITE);
+        resultView.setTypeface(null, 1);
+        resultView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
 
-        screenParams.setMargins(0, dp(15), 0, dp(12));
-        root.addView(screen, screenParams);
-
-        // لوحة الأزرار
-        String[][] keys = {
-            {"AC", "⌫", "%", "÷"},
-            {"7", "8", "9", "×"},
-            {"4", "5", "6", "−"},
-            {"1", "2", "3", "+"},
-            {"√", "0", ".", "="}
-        };
+        display.addView(expressionView);
+        display.addView(resultView);
 
         for (String[] row : keys) {
 
             LinearLayout line = new LinearLayout(this);
-            line.setGravity(Gravity.CENTER);
+            line.setOrientation(LinearLayout.HORIZONTAL);
+
+            LinearLayout.LayoutParams rowParams =
+                new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    0,
+                    1
+                );
+
+            rowParams.setMargins(0, dp(3), 0, dp(3));
+            root.addView(line, rowParams);
 
             for (String key : row) {
 
                 Button button = new Button(this);
                 button.setText(key);
                 button.setTextSize(21);
-                button.setTextColor(WHITE);
+                button.setTextColor(Color.WHITE);
                 button.setAllCaps(false);
-                button.setPadding(0, 0, 0, 0);
-
-                int[] colors;
-
-                if (key.equals("=")) {
-                    colors = new int[]{
-                        Color.rgb(25, 160, 115),
-                        Color.rgb(10, 105, 90)
-                    };
-                } else if (isOperator(key)) {
-                    colors = new int[]{
-                        Color.rgb(35, 130, 205),
-                        Color.rgb(20, 65, 135)
-                    };
-                } else {
-                    colors = new int[]{
-                        Color.rgb(55, 75, 110),
-                        Color.rgb(25, 40, 70)
-                    };
-                }
-
-                button.setBackground(rounded(
-                        colors, 17, Color.rgb(75, 125, 175)
+                button.setBackground(shape(
+                    getButtonColor(key),
+                    18
                 ));
 
-                button.setElevation(dp(4));
+                LinearLayout.LayoutParams buttonParams =
+                    new LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        1
+                    );
 
-                LinearLayout.LayoutParams params =
-                        new LinearLayout.LayoutParams(0, dp(63), 1);
+                buttonParams.setMargins(dp(4), dp(4), dp(4), dp(4));
 
-                params.setMargins(dp(4), dp(4), dp(4), dp(4));
-
-                line.addView(button, params);
+                line.addView(button, buttonParams);
 
                 button.setOnClickListener(v -> press(key));
             }
-
-            root.addView(line);
         }
 
-        // مساحة الكتابة
-        TextView writingTitle = new TextView(this);
-        writingTitle.setText("✎ مساحة الكتابة والملاحظات");
-        writingTitle.setTextColor(GOLD);
-        writingTitle.setTextSize(17);
-        writingTitle.setPadding(dp(4), dp(10), dp(4), dp(6));
-
-        root.addView(writingTitle);
-
-        writingArea = new EditText(this);
-        writingArea.setHint("اكتب ملاحظاتك هنا...");
-        writingArea.setTextColor(WHITE);
-        writingArea.setHintTextColor(Color.LTGRAY);
-        writingArea.setTextSize(16);
-        writingArea.setGravity(Gravity.TOP | Gravity.RIGHT);
-        writingArea.setPadding(dp(14), dp(12), dp(14), dp(12));
-
-        writingArea.setBackground(rounded(
-                new int[]{
-                    Color.rgb(25, 45, 75),
-                    Color.rgb(15, 28, 52)
-                },
-                16,
-                Color.rgb(65, 135, 195)
-        ));
-
-        writingArea.setInputType(
-                InputType.TYPE_CLASS_TEXT |
-                InputType.TYPE_TEXT_FLAG_MULTI_LINE |
-                InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
-        );
-
-        writingArea.setSingleLine(false);
-        writingArea.setMinLines(2);
-        writingArea.setMaxLines(4);
-
-        LinearLayout.LayoutParams writingParams =
-                new LinearLayout.LayoutParams(-1, 0, 1);
-
-        writingParams.setMargins(0, 0, 0, dp(5));
-        root.addView(writingArea, writingParams);
-
-        setContentView(root);
-
         updateDisplay();
-        startBackgroundAnimation();
     }
 
-    // حركة ألوان الخلفية
-    private void startBackgroundAnimation() {
+    private int getButtonColor(String key) {
 
-        int[] firstColors = {
-            Color.rgb(8, 17, 42),
-            Color.rgb(18, 35, 75),
-            Color.rgb(30, 20, 65)
-        };
+        if (key.equals("=")) {
+            return Color.rgb(15, 145, 110);
+        }
 
-        int[] secondColors = {
-            Color.rgb(12, 35, 65),
-            Color.rgb(20, 55, 95),
-            Color.rgb(45, 25, 80)
-        };
+        if (key.equals("AC") || key.equals("⌫")) {
+            return Color.rgb(170, 65, 75);
+        }
 
-        backgroundAnimator = ValueAnimator.ofFloat(0f, 1f);
-        backgroundAnimator.setDuration(5000);
-        backgroundAnimator.setRepeatCount(
-                ValueAnimator.INFINITE
-        );
-        backgroundAnimator.setRepeatMode(
-                ValueAnimator.REVERSE
-        );
+        if ("÷×−+%√".contains(key)) {
+            return Color.rgb(35, 95, 145);
+        }
 
-        backgroundAnimator.addUpdateListener(animation -> {
-
-            float fraction = (float) animation.getAnimatedValue();
-
-            ArgbEvaluator evaluator = new ArgbEvaluator();
-
-            int[] animatedColors = new int[3];
-
-            for (int i = 0; i < 3; i++) {
-                animatedColors[i] = (int) evaluator.evaluate(
-                        fraction,
-                        firstColors[i],
-                        secondColors[i]
-                );
-            }
-
-            outerBackground.setColors(animatedColors);
-        });
-
-        backgroundAnimator.start();
+        return Color.rgb(35, 48, 68);
     }
 
-    private boolean isOperator(String key) {
-        return key.equals("÷") ||
-               key.equals("×") ||
-               key.equals("−") ||
-               key.equals("+") ||
-               key.equals("=");
+    private boolean isOperator(char c) {
+        return c == '+' || c == '−' ||
+               c == '×' || c == '÷';
     }
 
     private void press(String key) {
 
         if (key.equals("AC")) {
-            current = "";
-            operator = "";
-            expression = "";
-            first = 0;
-            newNumber = true;
-            showingResult = false;
+            input = "";
+            resultShown = false;
             updateDisplay();
             return;
         }
 
         if (key.equals("⌫")) {
-
-            if (!current.isEmpty()) {
-                current = current.substring(
-                        0, current.length() - 1
-                );
+            if (!input.isEmpty()) {
+                input = input.substring(0, input.length() - 1);
             }
 
-            newNumber = current.isEmpty();
-            showingResult = false;
-            updateDisplay();
-            return;
-        }
-
-        if (key.equals("√")) {
-
-            double n = getNumber();
-
-            if (n < 0) {
-                resultView.setText("خطأ");
-                return;
-            }
-
-            current = format(Math.sqrt(n));
-            operator = "";
-            expression = "√(" + format(n) + ")";
-            newNumber = true;
-            showingResult = true;
-
-            updateDisplay();
-            return;
-        }
-
-        if (key.equals("%")) {
-
-            double n = getNumber();
-
-            current = format(n / 100.0);
-            expression = format(n) + "%";
-            operator = "";
-            newNumber = true;
-            showingResult = true;
-
-            updateDisplay();
-            return;
-        }
-
-        if ("÷×−+".contains(key) && key.length() == 1) {
-
-            if (current.isEmpty() && !showingResult) {
-                return;
-            }
-
-            first = getNumber();
-            operator = key;
-            expression = format(first) + " " + operator;
-
-            current = "";
-            newNumber = true;
-            showingResult = false;
-
+            resultShown = false;
             updateDisplay();
             return;
         }
 
         if (key.equals("=")) {
+            calculateFinal();
+            return;
+        }
 
-            if (operator.isEmpty() || current.isEmpty()) {
-                return;
+        if (key.equals("%")) {
+            applyUnary(false);
+            return;
+        }
+
+        if (key.equals("√")) {
+            applyUnary(true);
+            return;
+        }
+
+        if ("0123456789".contains(key)) {
+
+            if (resultShown) {
+                input = "";
+                resultShown = false;
             }
 
-            double second = getNumber();
-            double result;
-
-            switch (operator) {
-
-                case "+":
-                    result = first + second;
-                    break;
-
-                case "−":
-                    result = first - second;
-                    break;
-
-                case "×":
-                    result = first * second;
-                    break;
-
-                case "÷":
-
-                    if (second == 0) {
-                        resultView.setText(
-                                "لا يمكن القسمة على صفر"
-                        );
-                        return;
-                    }
-
-                    result = first / second;
-                    break;
-
-                default:
-                    return;
-            }
-
-            expression = format(first) + " " +
-                         operator + " " +
-                         format(second);
-
-            current = format(result);
-            operator = "";
-            newNumber = true;
-            showingResult = true;
-
+            input += key;
             updateDisplay();
             return;
         }
 
         if (key.equals(".")) {
 
-            if (newNumber) {
-                current = "0";
-                newNumber = false;
+            if (resultShown) {
+                input = "";
+                resultShown = false;
             }
 
-            if (!current.contains(".")) {
-                current += ".";
+            int start = input.length() - 1;
+
+            while (start >= 0 &&
+                   !isOperator(input.charAt(start))) {
+                start--;
             }
 
-            showingResult = false;
+            String number = input.substring(start + 1);
+
+            if (!number.contains(".")) {
+                if (number.isEmpty()) {
+                    input += "0";
+                }
+                input += ".";
+            }
+
             updateDisplay();
             return;
         }
 
-        if (key.matches("[0-9]")) {
+        if ("+−×÷".contains(key)) {
 
-            if (newNumber) {
-                current = "";
-                newNumber = false;
+            if (input.isEmpty()) {
+                if (key.equals("−")) {
+                    input = "−";
+                }
+            } else {
+                char last = input.charAt(input.length() - 1);
+
+                if (isOperator(last)) {
+                    input = input.substring(0, input.length() - 1);
+                }
+
+                input += key;
             }
 
-            if (current.length() < 15) {
-                current += key;
-            }
-
-            showingResult = false;
+            resultShown = false;
             updateDisplay();
         }
     }
 
-    private double getNumber() {
+    private void applyUnary(boolean squareRoot) {
+
+        if (input.isEmpty()) return;
+
+        int start = input.length() - 1;
+
+        while (start >= 0 &&
+               !isOperator(input.charAt(start))) {
+            start--;
+        }
+
+        String number = input.substring(start + 1);
+
         try {
-            return current.isEmpty()
-                    ? 0
-                    : Double.parseDouble(current);
+            double value = Double.parseDouble(number);
+
+            if (squareRoot) {
+                if (value < 0) {
+                    resultView.setText("رقم غير صالح");
+                    return;
+                }
+                value = Math.sqrt(value);
+            } else {
+                value = value / 100.0;
+            }
+
+            input = input.substring(0, start + 1) + format(value);
+            resultShown = false;
+            updateDisplay();
+
         } catch (Exception e) {
-            return 0;
+            resultView.setText("خطأ");
         }
-    }
-
-    private String format(double number) {
-
-        if (Double.isNaN(number) ||
-            Double.isInfinite(number)) {
-            return "خطأ";
-        }
-
-        if (number == Math.floor(number) &&
-            Math.abs(number) < 1e15) {
-            return String.valueOf((long) number);
-        }
-
-        return String.valueOf(number);
     }
 
     private void updateDisplay() {
 
-        if (showingResult) {
-            expressionView.setText(expression);
-            resultView.setText(
-                    current.isEmpty() ? "0" : current
-            );
+        expressionView.setText(input.isEmpty() ? "" : input);
+
+        if (input.isEmpty()) {
+            resultView.setText("0");
             return;
         }
 
-        if (!operator.isEmpty()) {
+        String candidate = input;
 
-            String second = current.isEmpty() ? "" : current;
+        if (isOperator(candidate.charAt(candidate.length() - 1))) {
+            candidate = candidate.substring(0, candidate.length() - 1);
+        }
 
-            expressionView.setText(
-                    format(first) + " " + operator + " " + second
-            );
+        if (candidate.isEmpty() || candidate.endsWith(".")) {
+            resultView.setText("...");
+            return;
+        }
 
-            if (!second.isEmpty()) {
-                double result = calculateLive(getNumber());
-                resultView.setText(format(result));
-            } else {
-                resultView.setText(format(first));
-            }
-
-        } else {
-
-            expressionView.setText(current);
-
-            resultView.setText(
-                    current.isEmpty() ? "0" : current
-            );
+        try {
+            double answer = new Parser(candidate).parse();
+            resultView.setText(format(answer));
+        } catch (Exception e) {
+            resultView.setText("...");
         }
     }
 
-    private double calculateLive(double second) {
+    private void calculateFinal() {
 
-        switch (operator) {
+        if (input.isEmpty()) return;
 
-            case "+":
-                return first + second;
+        try {
+            double answer = new Parser(input).parse();
 
-            case "−":
-                return first - second;
+            String oldExpression = input;
+            String finalAnswer = format(answer);
 
-            case "×":
-                return first * second;
+            expressionView.setText(oldExpression);
+            resultView.setText(finalAnswer);
 
-            case "÷":
-                return second == 0 ? 0 : first / second;
+            input = finalAnswer;
+            resultShown = true;
 
-            default:
-                return second;
+        } catch (ArithmeticException e) {
+            resultView.setText("لا يمكن القسمة على صفر");
+        } catch (Exception e) {
+            resultView.setText("عملية غير مكتملة");
+        }
+    }
+
+    private String format(double value) {
+
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return "خطأ";
+        }
+
+        return BigDecimal.valueOf(value)
+            .stripTrailingZeros()
+            .toPlainString();
+    }
+
+    private static class Parser {
+
+        private final String text;
+        private int position = 0;
+
+        Parser(String text) {
+            this.text = text;
+        }
+
+        double parse() {
+            double value = expression();
+
+            if (position != text.length()) {
+                throw new IllegalArgumentException();
+            }
+
+            if (Double.isNaN(value) || Double.isInfinite(value)) {
+                throw new ArithmeticException();
+            }
+
+            return value;
+        }
+
+        private double expression() {
+            double value = term();
+
+            while (position < text.length()) {
+                char operator = text.charAt(position);
+
+                if (operator == '+' || operator == '−') {
+                    position++;
+                    double next = term();
+
+                    if (operator == '+') {
+                        value += next;
+                    } else {
+                        value -= next;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            return value;
+        }
+
+        private double term() {
+            double value = factor();
+
+            while (position < text.length()) {
+                char operator = text.charAt(position);
+
+                if (operator == '×' || operator == '÷') {
+                    position++;
+                    double next = factor();
+
+                    if (operator == '×') {
+                        value *= next;
+                    } else {
+                        if (next == 0) {
+                            throw new ArithmeticException();
+                        }
+                        value /= next;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            return value;
+        }
+
+        private double factor() {
+
+            if (position < text.length() &&
+                (text.charAt(position) == '−' ||
+                 text.charAt(position) == '+')) {
+
+                char sign = text.charAt(position++);
+
+                double value = factor();
+
+                return sign == '−' ? -value : value;
+            }
+
+            int start = position;
+            boolean dot = false;
+
+            while (position < text.length()) {
+
+                char c = text.charAt(position);
+
+                if (c >= '0' && c <= '9') {
+                    position++;
+                } else if (c == '.' && !dot) {
+                    dot = true;
+                    position++;
+                } else {
+                    break;
+                }
+            }
+
+            if (start == position) {
+                throw new IllegalArgumentException();
+            }
+
+            return Double.parseDouble(
+                text.substring(start, position)
+            );
         }
     }
 
@@ -543,7 +538,6 @@ public class MainActivity extends Activity {
         if (backgroundAnimator != null) {
             backgroundAnimator.cancel();
         }
-
         super.onDestroy();
     }
 }
