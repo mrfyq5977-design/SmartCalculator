@@ -4,9 +4,9 @@
 
     <application
         android:allowBackup="true"
-        android:label="الحاسبة الذكية"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar"
-        android:usesCleartextTraffic="false">
+        android:label="الآلة الحاسبة الذكية"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
             android:name=".MainActivity"
