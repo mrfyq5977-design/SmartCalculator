@@ -63,6 +63,11 @@ public class MainActivity extends Activity {
         root.addView(resultView,
                 new LinearLayout.LayoutParams(-1, 75));
 
+        // المساحة التي تنزل الأزرار إلى أسفل الشاشة
+        View spacer = new View(this);
+        root.addView(spacer,
+                new LinearLayout.LayoutParams(-1, 0, 1f));
+
         // ترتيب الأزرار مثل الصورة
         String[][] keys = {
             {"AC", "()", "%", "÷"},
@@ -456,7 +461,6 @@ public class MainActivity extends Activity {
                         s.substring(start, pos));
             }
 
-            // النسبة المئوية
             while (eat('%')) {
                 value /= 100.0;
             }
