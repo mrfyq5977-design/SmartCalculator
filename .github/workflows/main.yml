@@ -29,15 +29,13 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Inspect AndroidManifest
+      - name: Diagnose Manifest
         run: |
-          echo "Checking manifest file"
-          file app/src/main/AndroidManifest.xml
-          cat -A app/src/main/AndroidManifest.xml
-          xmllint --noout app/src/main/AndroidManifest.xml
+          echo "=== CHECK XML ==="
+          python3 -c "import xml.etree.ElementTree as E; E.parse('app/src/main/AndroidManifest.xml'); print('XML IS VALID')"
 
       - name: Build APK
-        run: gradle assembleDebug --stacktrace --info
+        run: gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
