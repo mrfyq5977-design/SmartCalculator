@@ -29,10 +29,27 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Diagnose Manifest
+      - name: Fix and Check Manifest
         run: |
-          echo "=== CHECK XML ==="
-          python3 -c "import xml.etree.ElementTree as E; E.parse('app/src/main/AndroidManifest.xml'); print('XML IS VALID')"
+          python3 - <<'PY'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          path = Path("app/src/main/AndroidManifest.xml")
+
+          if not path.exists():
+              raise SystemExit("ERROR: AndroidManifest.xml not found")
+
+          content = path.read_text(encoding="utf-8-sig")
+          content = content.lstrip(" \t\r\n")
+
+          path.write_text(content, encoding="utf-8")
+
+          ET.parse(path)
+
+          print("SUCCESS: AndroidManifest.xml is valid")
+          print("Manifest XML check passed")
+          PY
 
       - name: Build APK
         run: gradle assembleDebug --stacktrace
