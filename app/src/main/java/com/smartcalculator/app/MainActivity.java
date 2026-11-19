@@ -4,20 +4,24 @@ package com.smartcalculator.app;
 import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.animation.ValueAnimator;
-import android.animation.ArgbEvaluator;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Button;
-import android.view.ViewGroup;
 import android.util.TypedValue;
 
 import java.math.BigDecimal;
 
 public class MainActivity extends Activity {
+
+    private final int GOLD = Color.rgb(212, 166, 43);
+    private final int LIGHT_GOLD = Color.rgb(245, 211, 120);
+    private final int BLACK = Color.rgb(15, 15, 15);
+    private final int DARK = Color.rgb(32, 32, 32);
 
     private TextView expressionView;
     private TextView resultView;
@@ -25,8 +29,7 @@ public class MainActivity extends Activity {
     private String input = "";
     private boolean resultShown = false;
 
-    private LinearLayout root;
-    private ValueAnimator backgroundAnimator;
+    private LinearLayout calculatorScreen;
 
     private final String[][] keys = {
         {"AC", "⌫", "%", "÷"},
@@ -47,117 +50,227 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(16), dp(25), dp(16), dp(16));
-
-        setContentView(root);
-
-        startBackgroundAnimation();
-        createInterface();
+        showHome();
     }
 
-    private void startBackgroundAnimation() {
-        final int[] colors = {
-            Color.rgb(10, 25, 55),
-            Color.rgb(20, 75, 105),
-            Color.rgb(70, 35, 105),
-            Color.rgb(10, 80, 85)
-        };
-
-        backgroundAnimator = ValueAnimator.ofObject(
-            new ArgbEvaluator(),
-            colors[0],
-            colors[1],
-            colors[2],
-            colors[3],
-            colors[0]
-        );
-
-        backgroundAnimator.setDuration(10000);
-        backgroundAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        backgroundAnimator.setRepeatMode(ValueAnimator.RESTART);
-
-        backgroundAnimator.addUpdateListener(animation -> {
-            int color = (int) animation.getAnimatedValue();
-
-            GradientDrawable background = new GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                new int[]{
-                    color,
-                    Color.rgb(12, 20, 45)
-                }
-            );
-
-            root.setBackground(background);
-        });
-
-        backgroundAnimator.start();
-    }
-
-    private GradientDrawable shape(
-        int color,
-        int radius
-    ) {
+    private GradientDrawable background(int color, int radius) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(color);
         drawable.setCornerRadius(dp(radius));
-        drawable.setStroke(dp(1), Color.argb(45, 255, 255, 255));
+        drawable.setStroke(dp(1), GOLD);
         return drawable;
     }
 
-    private TextView makeText(
-        String text,
+    private TextView text(
+        String value,
         int size,
         int color
     ) {
         TextView view = new TextView(this);
-        view.setText(text);
+        view.setText(value);
         view.setTextSize(size);
         view.setTextColor(color);
         view.setGravity(Gravity.CENTER);
         return view;
     }
 
-    private void createInterface() {
+    private Button makeButton(
+        String value,
+        int color,
+        int textColor
+    ) {
+        Button button = new Button(this);
+        button.setText(value);
+        button.setTextSize(19);
+        button.setTextColor(textColor);
+        button.setAllCaps(false);
+        button.setTypeface(null, Typeface.BOLD);
+        button.setBackground(background(color, 16));
+        return button;
+    }
 
-        TextView title = makeText(
+    // الواجهة الخارجية الذهبية
+    private void showHome() {
+
+        getWindow().setStatusBarColor(GOLD);
+        getWindow().setNavigationBarColor(GOLD);
+        getWindow().getDecorView().setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR |
+            View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        );
+
+        LinearLayout home = new LinearLayout(this);
+        home.setOrientation(LinearLayout.VERTICAL);
+        home.setGravity(Gravity.CENTER);
+        home.setPadding(dp(24), dp(25), dp(24), dp(25));
+        home.setBackgroundColor(GOLD);
+
+        setContentView(home);
+
+        TextView symbol = text("✦", 75, BLACK);
+        symbol.setTypeface(null, Typeface.BOLD);
+
+        home.addView(symbol, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            dp(110)
+        ));
+
+        TextView title = text(
             "الآلة الحاسبة الذكية",
+            29,
+            BLACK
+        );
+        title.setTypeface(null, Typeface.BOLD);
+
+        home.addView(title);
+
+        TextView subtitle = text(
+            "حساباتك بسهولة ودقة",
+            17,
+            BLACK
+        );
+
+        LinearLayout.LayoutParams subParams =
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(55)
+            );
+
+        home.addView(subtitle, subParams);
+
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.VERTICAL);
+        panel.setGravity(Gravity.CENTER);
+        panel.setPadding(dp(18), dp(25), dp(18), dp(25));
+        panel.setBackground(background(BLACK, 25));
+
+        LinearLayout.LayoutParams panelParams =
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(210)
+            );
+
+        panelParams.setMargins(0, dp(25), 0, dp(25));
+        home.addView(panel, panelParams);
+
+        TextView panelTitle = text(
+            "مرحباً بك",
             25,
+            LIGHT_GOLD
+        );
+        panelTitle.setTypeface(null, Typeface.BOLD);
+
+        panel.addView(panelTitle);
+
+        TextView panelDescription = text(
+            "واجهة أنيقة باللون الذهبي والأسود",
+            15,
             Color.WHITE
         );
 
-        title.setTypeface(null, 1);
+        panel.addView(panelDescription);
 
-        root.addView(title, new LinearLayout.LayoutParams(
+        Button start = makeButton(
+            "ابدأ الحساب",
+            GOLD,
+            BLACK
+        );
+
+        LinearLayout.LayoutParams startParams =
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(60)
+            );
+
+        startParams.setMargins(dp(10), dp(20), dp(10), 0);
+        panel.addView(start, startParams);
+
+        start.setOnClickListener(v -> showCalculator());
+
+        TextView footer = text(
+            "SMART CALCULATOR",
+            14,
+            BLACK
+        );
+
+        home.addView(footer);
+    }
+
+    // الواجهة الداخلية السوداء والذهبية
+    private void showCalculator() {
+
+        getWindow().setStatusBarColor(BLACK);
+        getWindow().setNavigationBarColor(BLACK);
+        getWindow().getDecorView().setSystemUiVisibility(0);
+
+        calculatorScreen = new LinearLayout(this);
+        calculatorScreen.setOrientation(LinearLayout.VERTICAL);
+        calculatorScreen.setPadding(
+            dp(12), dp(12), dp(12), dp(12)
+        );
+        calculatorScreen.setBackgroundColor(BLACK);
+
+        setContentView(calculatorScreen);
+
+        LinearLayout top = new LinearLayout(this);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+
+        calculatorScreen.addView(top,
+            new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(55)
+            )
+        );
+
+        Button back = makeButton(
+            "رجوع",
+            GOLD,
+            BLACK
+        );
+
+        top.addView(back, new LinearLayout.LayoutParams(
+            dp(85),
+            dp(48)
+        ));
+
+        back.setOnClickListener(v -> showHome());
+
+        TextView heading = text(
+            "الآلة الحاسبة",
+            21,
+            LIGHT_GOLD
+        );
+
+        heading.setTypeface(null, Typeface.BOLD);
+
+        top.addView(heading, new LinearLayout.LayoutParams(
+            0,
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(65)
+            1
         ));
 
         LinearLayout display = new LinearLayout(this);
         display.setOrientation(LinearLayout.VERTICAL);
         display.setGravity(Gravity.CENTER_VERTICAL);
-        display.setPadding(dp(18), dp(12), dp(18), dp(12));
-        display.setBackground(shape(
-            Color.rgb(22, 37, 58),
-            22
-        ));
+        display.setPadding(dp(15), dp(12), dp(15), dp(12));
+        display.setBackground(background(DARK, 20));
 
         LinearLayout.LayoutParams displayParams =
             new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(135)
+                dp(125)
             );
 
-        displayParams.setMargins(0, dp(10), 0, dp(20));
-        root.addView(display, displayParams);
+        displayParams.setMargins(0, dp(12), 0, dp(15));
 
-        expressionView = makeText("", 22, Color.LTGRAY);
+        calculatorScreen.addView(display, displayParams);
+
+        expressionView = text("", 20, LIGHT_GOLD);
         expressionView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
 
-        resultView = makeText("0", 34, Color.WHITE);
-        resultView.setTypeface(null, 1);
+        resultView = text("0", 34, Color.WHITE);
+        resultView.setTypeface(null, Typeface.BOLD);
         resultView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
 
         display.addView(expressionView);
@@ -175,20 +288,16 @@ public class MainActivity extends Activity {
                     1
                 );
 
-            rowParams.setMargins(0, dp(3), 0, dp(3));
-            root.addView(line, rowParams);
+            rowParams.setMargins(0, dp(2), 0, dp(2));
+            calculatorScreen.addView(line, rowParams);
 
             for (String key : row) {
 
-                Button button = new Button(this);
-                button.setText(key);
-                button.setTextSize(21);
-                button.setTextColor(Color.WHITE);
-                button.setAllCaps(false);
-                button.setBackground(shape(
-                    getButtonColor(key),
-                    18
-                ));
+                Button button = makeButton(
+                    key,
+                    getKeyColor(key),
+                    getKeyTextColor(key)
+                );
 
                 LinearLayout.LayoutParams buttonParams =
                     new LinearLayout.LayoutParams(
@@ -197,7 +306,9 @@ public class MainActivity extends Activity {
                         1
                     );
 
-                buttonParams.setMargins(dp(4), dp(4), dp(4), dp(4));
+                buttonParams.setMargins(
+                    dp(3), dp(4), dp(3), dp(4)
+                );
 
                 line.addView(button, buttonParams);
 
@@ -208,21 +319,24 @@ public class MainActivity extends Activity {
         updateDisplay();
     }
 
-    private int getButtonColor(String key) {
+    private int getKeyColor(String key) {
 
-        if (key.equals("=")) {
-            return Color.rgb(15, 145, 110);
-        }
+        if (key.equals("=")) return GOLD;
 
         if (key.equals("AC") || key.equals("⌫")) {
-            return Color.rgb(170, 65, 75);
+            return Color.rgb(115, 48, 35);
         }
 
         if ("÷×−+%√".contains(key)) {
-            return Color.rgb(35, 95, 145);
+            return Color.rgb(115, 83, 25);
         }
 
-        return Color.rgb(35, 48, 68);
+        return DARK;
+    }
+
+    private int getKeyTextColor(String key) {
+        if (key.equals("=")) return BLACK;
+        return LIGHT_GOLD;
     }
 
     private boolean isOperator(char c) {
@@ -243,7 +357,6 @@ public class MainActivity extends Activity {
             if (!input.isEmpty()) {
                 input = input.substring(0, input.length() - 1);
             }
-
             resultShown = false;
             updateDisplay();
             return;
@@ -265,19 +378,16 @@ public class MainActivity extends Activity {
         }
 
         if ("0123456789".contains(key)) {
-
             if (resultShown) {
                 input = "";
                 resultShown = false;
             }
-
             input += key;
             updateDisplay();
             return;
         }
 
         if (key.equals(".")) {
-
             if (resultShown) {
                 input = "";
                 resultShown = false;
@@ -293,9 +403,7 @@ public class MainActivity extends Activity {
             String number = input.substring(start + 1);
 
             if (!number.contains(".")) {
-                if (number.isEmpty()) {
-                    input += "0";
-                }
+                if (number.isEmpty()) input += "0";
                 input += ".";
             }
 
@@ -306,9 +414,7 @@ public class MainActivity extends Activity {
         if ("+−×÷".contains(key)) {
 
             if (input.isEmpty()) {
-                if (key.equals("−")) {
-                    input = "−";
-                }
+                if (key.equals("−")) input = "−";
             } else {
                 char last = input.charAt(input.length() - 1);
 
@@ -347,7 +453,7 @@ public class MainActivity extends Activity {
                 }
                 value = Math.sqrt(value);
             } else {
-                value = value / 100.0;
+                value /= 100.0;
             }
 
             input = input.substring(0, start + 1) + format(value);
@@ -361,7 +467,7 @@ public class MainActivity extends Activity {
 
     private void updateDisplay() {
 
-        expressionView.setText(input.isEmpty() ? "" : input);
+        expressionView.setText(input);
 
         if (input.isEmpty()) {
             resultView.setText("0");
@@ -454,11 +560,9 @@ public class MainActivity extends Activity {
                     position++;
                     double next = term();
 
-                    if (operator == '+') {
-                        value += next;
-                    } else {
-                        value -= next;
-                    }
+                    if (operator == '+') value += next;
+                    else value -= next;
+
                 } else {
                     break;
                 }
@@ -485,6 +589,7 @@ public class MainActivity extends Activity {
                         }
                         value /= next;
                     }
+
                 } else {
                     break;
                 }
@@ -500,7 +605,6 @@ public class MainActivity extends Activity {
                  text.charAt(position) == '+')) {
 
                 char sign = text.charAt(position++);
-
                 double value = factor();
 
                 return sign == '−' ? -value : value;
@@ -534,10 +638,12 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() {
-        if (backgroundAnimator != null) {
-            backgroundAnimator.cancel();
+    public void onBackPressed() {
+        if (calculatorScreen != null &&
+            calculatorScreen.getParent() != null) {
+            showHome();
+        } else {
+            super.onBackPressed();
         }
-        super.onDestroy();
     }
 }
