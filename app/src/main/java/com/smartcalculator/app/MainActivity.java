@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
         root.addView(resultView,
                 new LinearLayout.LayoutParams(-1, 70));
 
-        // شريط الحذف والعلمية
+        // زر الحذف بجانب الحاسبة العلمية
         LinearLayout toolbar = new LinearLayout(this);
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
         toolbar.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
         root.addView(toolbar,
                 new LinearLayout.LayoutParams(-1, 58));
 
-        // أزرار الحاسبة العلمية
+        // أزرار الحاسبة العلمية مخفية في البداية
         String[][] scientificKeys = {
             {"sin", "cos", "tan", "log"},
             {"ln", "π", "e", "x²"}
@@ -109,38 +109,22 @@ public class MainActivity extends Activity {
         setContentView(root);
     }
 
-    // إنشاء أزرار الشريط العلوي
     private void addToolbarButton(LinearLayout toolbar, String key) {
 
-        CircleButton button = new CircleButton(this);
+        TextView button = new TextView(this);
 
         button.setText(key);
-        button.setAllCaps(false);
+        button.setTextColor(GOLD_LIGHT);
+        button.setTextSize(key.equals("SCI") ? 16 : 27);
         button.setTypeface(null, Typeface.BOLD);
         button.setGravity(Gravity.CENTER);
-        button.setIncludeFontPadding(false);
-        button.setPadding(0, 0, 0, 0);
-        button.setMinWidth(0);
-        button.setMinHeight(0);
-        button.setMinimumWidth(0);
-        button.setMinimumHeight(0);
-
-        GradientDrawable circle = new GradientDrawable();
-        circle.setShape(GradientDrawable.OVAL);
-        circle.setColor(GOLD);
-        circle.setStroke(1, GOLD_LIGHT);
-
-        button.setBackground(circle);
-        button.setTextColor(BLACK);
-        button.setStateListAnimator(null);
-        button.setTextSize(16);
+        button.setBackgroundColor(Color.TRANSPARENT);
+        button.setPadding(8, 4, 8, 4);
 
         LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(
-                        52, 52);
+                new LinearLayout.LayoutParams(52, 52);
 
         params.setMargins(4, 2, 4, 2);
-
         toolbar.addView(button, params);
 
         if (key.equals("SCI")) {
@@ -197,8 +181,7 @@ public class MainActivity extends Activity {
         }
 
         LinearLayout.LayoutParams rowParams =
-                new LinearLayout.LayoutParams(
-                        -1, 0, 1f);
+                new LinearLayout.LayoutParams(-1, 0, 1f);
 
         root.addView(line, rowParams);
     }
@@ -206,13 +189,11 @@ public class MainActivity extends Activity {
     private void addButton(LinearLayout line, String key) {
 
         LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(
-                        0, -1, 1f);
+                new LinearLayout.LayoutParams(0, -1, 1f);
 
         params.setMargins(3, 3, 3, 3);
         params.gravity = Gravity.CENTER;
 
-        // مكان فارغ يحافظ على توزيع الأزرار
         if (key.isEmpty()) {
             line.addView(new View(this), params);
             return;
@@ -274,10 +255,7 @@ public class MainActivity extends Activity {
 
         button.setBackground(circle);
         button.setStateListAnimator(null);
-
-        button.setTextSize(
-                key.length() > 2 ? 16 : 22
-        );
+        button.setTextSize(key.length() > 2 ? 16 : 22);
 
         line.addView(button, params);
 
@@ -298,7 +276,6 @@ public class MainActivity extends Activity {
             return;
         }
 
-        // حذف حرف واحد
         if (key.equals("⌫")) {
 
             justCalculated = false;
@@ -317,7 +294,6 @@ public class MainActivity extends Activity {
             return;
         }
 
-        // الجذر التربيعي
         if (key.equals("√")) {
             if (justCalculated) {
                 justCalculated = false;
@@ -328,7 +304,6 @@ public class MainActivity extends Activity {
             return;
         }
 
-        // تغيير الإشارة
         if (key.equals("+/−")) {
 
             if (!current.isEmpty()) {
@@ -360,7 +335,6 @@ public class MainActivity extends Activity {
             justCalculated = false;
         }
 
-        // الحاسبة العلمية
         switch (key) {
 
             case "sin":
@@ -402,7 +376,6 @@ public class MainActivity extends Activity {
         updateDisplay();
     }
 
-    // حساب النتيجة النهائية
     private void calculateFinal() {
 
         if (current.isEmpty()) return;
@@ -423,7 +396,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    // تحديث النتيجة تلقائياً
     private void updateDisplay() {
 
         expressionView.setText(current);
@@ -473,7 +445,6 @@ public class MainActivity extends Activity {
         return new Parser(input).parse();
     }
 
-    // محلل العمليات الحسابية والعلمية
     private static class Parser {
 
         private final String s;
@@ -556,8 +527,7 @@ public class MainActivity extends Activity {
                     double divisor = power();
 
                     if (divisor == 0) {
-                        throw new RuntimeException(
-                                "قسمة على صفر");
+                        throw new RuntimeException("قسمة على صفر");
                     }
 
                     value /= divisor;
@@ -591,8 +561,7 @@ public class MainActivity extends Activity {
                 value = expression();
 
                 if (!eat(')')) {
-                    throw new RuntimeException(
-                            "قوس غير مكتمل");
+                    throw new RuntimeException("قوس غير مكتمل");
                 }
 
             } else if ((ch >= '0' && ch <= '9') || ch == '.') {
@@ -605,8 +574,7 @@ public class MainActivity extends Activity {
 
                     if (ch == '.') {
                         if (hasDot) {
-                            throw new RuntimeException(
-                                    "رقم غير صحيح");
+                            throw new RuntimeException("رقم غير صحيح");
                         }
                         hasDot = true;
                     } else {
@@ -617,12 +585,10 @@ public class MainActivity extends Activity {
                 }
 
                 if (!hasDigit) {
-                    throw new RuntimeException(
-                            "رقم غير صحيح");
+                    throw new RuntimeException("رقم غير صحيح");
                 }
 
-                value = Double.parseDouble(
-                        s.substring(start, pos));
+                value = Double.parseDouble(s.substring(start, pos));
 
             } else if (Character.isLetter(ch)) {
 
@@ -652,32 +618,27 @@ public class MainActivity extends Activity {
                     case "sqrt":
 
                         if (!eat('(')) {
-                            throw new RuntimeException(
-                                    "قوس مطلوب");
+                            throw new RuntimeException("قوس مطلوب");
                         }
 
                         double argument = expression();
 
                         if (!eat(')')) {
-                            throw new RuntimeException(
-                                    "قوس غير مكتمل");
+                            throw new RuntimeException("قوس غير مكتمل");
                         }
 
                         switch (name) {
 
                             case "sin":
-                                value = Math.sin(
-                                        Math.toRadians(argument));
+                                value = Math.sin(Math.toRadians(argument));
                                 break;
 
                             case "cos":
-                                value = Math.cos(
-                                        Math.toRadians(argument));
+                                value = Math.cos(Math.toRadians(argument));
                                 break;
 
                             case "tan":
-                                value = Math.tan(
-                                        Math.toRadians(argument));
+                                value = Math.tan(Math.toRadians(argument));
                                 break;
 
                             case "log":
@@ -696,13 +657,11 @@ public class MainActivity extends Activity {
                         break;
 
                     default:
-                        throw new RuntimeException(
-                                "عملية غير معروفة");
+                        throw new RuntimeException("عملية غير معروفة");
                 }
 
             } else {
-                throw new RuntimeException(
-                        "رقم غير صحيح");
+                throw new RuntimeException("رقم غير صحيح");
             }
 
             while (eat('%')) {
