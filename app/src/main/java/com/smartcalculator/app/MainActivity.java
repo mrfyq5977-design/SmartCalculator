@@ -63,12 +63,19 @@ public class MainActivity extends Activity {
         root.addView(resultView,
                 new LinearLayout.LayoutParams(-1, 70));
 
-        // مساحة الشاشة بين النتيجة والأزرار
+        // مساحة مرنة بين النتيجة ولوحة الأزرار
         View space = new View(this);
         root.addView(space,
-                new LinearLayout.LayoutParams(-1, 0, 1f));
+                new LinearLayout.LayoutParams(-1, 0, 2f));
 
-        // زر الحذف و SCI في الجهة اليمنى
+        // لوحة الأزرار تستغل المساحة المتبقية
+        LinearLayout keypadPanel = new LinearLayout(this);
+        keypadPanel.setOrientation(LinearLayout.VERTICAL);
+
+        root.addView(keypadPanel,
+                new LinearLayout.LayoutParams(-1, 0, 5f));
+
+        // زر الحذف و SCI
         LinearLayout toolbar = new LinearLayout(this);
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
         toolbar.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
@@ -77,28 +84,34 @@ public class MainActivity extends Activity {
         addToolbarButton(toolbar, "⌫");
         addToolbarButton(toolbar, "SCI");
 
-        root.addView(toolbar,
+        keypadPanel.addView(toolbar,
                 new LinearLayout.LayoutParams(-1, 38));
 
-        // أزرار العلمية
+        // الحاسبة العلمية مخفية في البداية
+        scientificPanel = new LinearLayout(this);
+        scientificPanel.setOrientation(LinearLayout.VERTICAL);
+        scientificPanel.setVisibility(View.GONE);
+
+        keypadPanel.addView(scientificPanel,
+                new LinearLayout.LayoutParams(-1, 0, 2f));
+
         String[][] scientificKeys = {
             {"sin", "cos", "tan", "log"},
             {"ln", "π", "e", "x²"},
             {"√", "", "", ""}
         };
 
-        scientificPanel = new LinearLayout(this);
-        scientificPanel.setOrientation(LinearLayout.VERTICAL);
-        scientificPanel.setVisibility(View.GONE);
-
-        root.addView(scientificPanel,
-                new LinearLayout.LayoutParams(-1, -2));
-
         for (String[] row : scientificKeys) {
             addRow(scientificPanel, row);
         }
 
-        // الأزرار العادية: خمسة صفوف مثل الصورة الأولى
+        // الأزرار العادية بنفس ترتيب الصورة الأولى
+        LinearLayout normalPanel = new LinearLayout(this);
+        normalPanel.setOrientation(LinearLayout.VERTICAL);
+
+        keypadPanel.addView(normalPanel,
+                new LinearLayout.LayoutParams(-1, 0, 5f));
+
         String[][] normalKeys = {
             {"AC", "()", "%", "÷"},
             {"7", "8", "9", "×"},
@@ -108,22 +121,23 @@ public class MainActivity extends Activity {
         };
 
         for (String[] row : normalKeys) {
-            addRow(root, row);
+            addRow(normalPanel, row);
         }
 
         setContentView(root);
     }
 
+    // زر الحذف وزر العلمية
     private void addToolbarButton(LinearLayout toolbar, String key) {
 
         TextView button = new TextView(this);
 
         button.setText(key);
         button.setTextColor(GOLD_LIGHT);
-        button.setTextSize(key.equals("SCI") ? 13 : 23);
+        button.setTextSize(key.equals("SCI") ? 15 : 25);
         button.setTypeface(null, Typeface.BOLD);
         button.setGravity(Gravity.CENTER);
-        button.setPadding(2, 0, 2, 0);
+        button.setPadding(3, 0, 3, 0);
 
         LinearLayout.LayoutParams params =
                 new LinearLayout.LayoutParams(42, 38);
@@ -173,7 +187,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // إنشاء صف أزرار بحجم ثابت ومتقارب
+    // صفوف مرنة تتكيف مع حجم الشاشة
     private void addRow(LinearLayout root, String[] keys) {
 
         LinearLayout line = new LinearLayout(this);
@@ -185,7 +199,7 @@ public class MainActivity extends Activity {
         }
 
         LinearLayout.LayoutParams rowParams =
-                new LinearLayout.LayoutParams(-1, 82);
+                new LinearLayout.LayoutParams(-1, 0, 1f);
 
         root.addView(line, rowParams);
     }
@@ -223,7 +237,6 @@ public class MainActivity extends Activity {
                 key.equals("+") ||
                 key.equals("%") ||
                 key.equals("AC") ||
-                key.equals("⌫") ||
                 key.equals("√") ||
                 key.equals("()") ||
                 key.equals("+/−") ||
@@ -281,7 +294,6 @@ public class MainActivity extends Activity {
         }
 
         if (key.equals("⌫")) {
-
             justCalculated = false;
 
             if (!current.isEmpty()) {
@@ -446,6 +458,7 @@ public class MainActivity extends Activity {
         return new Parser(input).parse();
     }
 
+    // محلل العمليات الحسابية والعلمية
     private static class Parser {
 
         private final String s;
