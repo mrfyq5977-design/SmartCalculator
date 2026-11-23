@@ -63,7 +63,12 @@ public class MainActivity extends Activity {
         root.addView(resultView,
                 new LinearLayout.LayoutParams(-1, 70));
 
-        // زر الحذف بجانب الحاسبة العلمية
+        // مساحة الشاشة بين النتيجة والأزرار
+        View space = new View(this);
+        root.addView(space,
+                new LinearLayout.LayoutParams(-1, 0, 1f));
+
+        // زر الحذف و SCI في الجهة اليمنى
         LinearLayout toolbar = new LinearLayout(this);
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
         toolbar.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
@@ -73,12 +78,13 @@ public class MainActivity extends Activity {
         addToolbarButton(toolbar, "SCI");
 
         root.addView(toolbar,
-                new LinearLayout.LayoutParams(-1, 58));
+                new LinearLayout.LayoutParams(-1, 38));
 
-        // أزرار الحاسبة العلمية مخفية في البداية
+        // أزرار العلمية
         String[][] scientificKeys = {
             {"sin", "cos", "tan", "log"},
-            {"ln", "π", "e", "x²"}
+            {"ln", "π", "e", "x²"},
+            {"√", "", "", ""}
         };
 
         scientificPanel = new LinearLayout(this);
@@ -86,20 +92,19 @@ public class MainActivity extends Activity {
         scientificPanel.setVisibility(View.GONE);
 
         root.addView(scientificPanel,
-                new LinearLayout.LayoutParams(-1, 0, 2f));
+                new LinearLayout.LayoutParams(-1, -2));
 
         for (String[] row : scientificKeys) {
             addRow(scientificPanel, row);
         }
 
-        // الأزرار العادية
+        // الأزرار العادية: خمسة صفوف مثل الصورة الأولى
         String[][] normalKeys = {
             {"AC", "()", "%", "÷"},
             {"7", "8", "9", "×"},
             {"4", "5", "6", "−"},
             {"1", "2", "3", "+"},
-            {"+/−", "", "0", ""},
-            {"√", ".", "=", ""}
+            {"+/−", "0", ".", "="}
         };
 
         for (String[] row : normalKeys) {
@@ -115,16 +120,15 @@ public class MainActivity extends Activity {
 
         button.setText(key);
         button.setTextColor(GOLD_LIGHT);
-        button.setTextSize(key.equals("SCI") ? 16 : 27);
+        button.setTextSize(key.equals("SCI") ? 13 : 23);
         button.setTypeface(null, Typeface.BOLD);
         button.setGravity(Gravity.CENTER);
-        button.setBackgroundColor(Color.TRANSPARENT);
-        button.setPadding(8, 4, 8, 4);
+        button.setPadding(2, 0, 2, 0);
 
         LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(52, 52);
+                new LinearLayout.LayoutParams(42, 38);
 
-        params.setMargins(4, 2, 4, 2);
+        params.setMargins(2, 0, 2, 0);
         toolbar.addView(button, params);
 
         if (key.equals("SCI")) {
@@ -147,7 +151,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // زر دائري حقيقي
+    // زر دائري
     private class CircleButton extends Button {
 
         public CircleButton(Context context) {
@@ -169,7 +173,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // إنشاء صف متساوٍ
+    // إنشاء صف أزرار بحجم ثابت ومتقارب
     private void addRow(LinearLayout root, String[] keys) {
 
         LinearLayout line = new LinearLayout(this);
@@ -181,7 +185,7 @@ public class MainActivity extends Activity {
         }
 
         LinearLayout.LayoutParams rowParams =
-                new LinearLayout.LayoutParams(-1, 0, 1f);
+                new LinearLayout.LayoutParams(-1, 82);
 
         root.addView(line, rowParams);
     }
@@ -295,10 +299,7 @@ public class MainActivity extends Activity {
         }
 
         if (key.equals("√")) {
-            if (justCalculated) {
-                justCalculated = false;
-            }
-
+            justCalculated = false;
             current += "sqrt(";
             updateDisplay();
             return;
