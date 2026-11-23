@@ -17,6 +17,7 @@ public class MainActivity extends Activity {
 
     private TextView expressionView;
     private TextView resultView;
+    private LinearLayout scientificPanel;
 
     private String current = "";
     private boolean justCalculated = false;
@@ -40,7 +41,6 @@ public class MainActivity extends Activity {
         root.setPadding(8, 8, 8, 8);
         root.setBackgroundColor(BLACK);
 
-        // شاشة العملية
         expressionView = new TextView(this);
         expressionView.setTextColor(WHITE);
         expressionView.setTextSize(24);
@@ -48,7 +48,6 @@ public class MainActivity extends Activity {
         expressionView.setSingleLine(true);
         expressionView.setPadding(8, 4, 8, 4);
 
-        // شاشة النتيجة
         resultView = new TextView(this);
         resultView.setTextColor(WHITE);
         resultView.setTextSize(36);
@@ -64,11 +63,34 @@ public class MainActivity extends Activity {
         root.addView(resultView,
                 new LinearLayout.LayoutParams(-1, 70));
 
-        // أزرار الحاسبة العلمية في الأعلى
+        // شريط الحذف والعلمية
+        LinearLayout toolbar = new LinearLayout(this);
+        toolbar.setOrientation(LinearLayout.HORIZONTAL);
+        toolbar.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+
+        addToolbarButton(toolbar, "⌫");
+        addToolbarButton(toolbar, "SCI");
+
+        root.addView(toolbar,
+                new LinearLayout.LayoutParams(-1, 58));
+
+        // أزرار الحاسبة العلمية
         String[][] scientificKeys = {
             {"sin", "cos", "tan", "log"},
-            {"ln", "π", "e", "x²"},
+            {"ln", "π", "e", "x²"}
         };
+
+        scientificPanel = new LinearLayout(this);
+        scientificPanel.setOrientation(LinearLayout.VERTICAL);
+        scientificPanel.setVisibility(View.GONE);
+
+        root.addView(scientificPanel,
+                new LinearLayout.LayoutParams(-1, 0, 2f));
+
+        for (String[] row : scientificKeys) {
+            addRow(scientificPanel, row);
+        }
 
         // الأزرار العادية
         String[][] normalKeys = {
@@ -76,21 +98,69 @@ public class MainActivity extends Activity {
             {"7", "8", "9", "×"},
             {"4", "5", "6", "−"},
             {"1", "2", "3", "+"},
-            {"+/−", "00", "0", "000"},
-            {"√", ".", "=", "⌫"}
+            {"+/−", "", "0", ""},
+            {"√", ".", "=", ""}
         };
 
-        // العلمية أولاً
-        for (String[] row : scientificKeys) {
-            addRow(root, row);
-        }
-
-        // العادية بعدها
         for (String[] row : normalKeys) {
             addRow(root, row);
         }
 
         setContentView(root);
+    }
+
+    // إنشاء أزرار الشريط العلوي
+    private void addToolbarButton(LinearLayout toolbar, String key) {
+
+        CircleButton button = new CircleButton(this);
+
+        button.setText(key);
+        button.setAllCaps(false);
+        button.setTypeface(null, Typeface.BOLD);
+        button.setGravity(Gravity.CENTER);
+        button.setIncludeFontPadding(false);
+        button.setPadding(0, 0, 0, 0);
+        button.setMinWidth(0);
+        button.setMinHeight(0);
+        button.setMinimumWidth(0);
+        button.setMinimumHeight(0);
+
+        GradientDrawable circle = new GradientDrawable();
+        circle.setShape(GradientDrawable.OVAL);
+        circle.setColor(GOLD);
+        circle.setStroke(1, GOLD_LIGHT);
+
+        button.setBackground(circle);
+        button.setTextColor(BLACK);
+        button.setStateListAnimator(null);
+        button.setTextSize(16);
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(
+                        52, 52);
+
+        params.setMargins(4, 2, 4, 2);
+
+        toolbar.addView(button, params);
+
+        if (key.equals("SCI")) {
+            button.setOnClickListener(v -> {
+                if (scientificPanel.getVisibility() == View.GONE) {
+                    scientificPanel.setVisibility(View.VISIBLE);
+                } else {
+                    scientificPanel.setVisibility(View.GONE);
+                }
+            });
+        }
+
+        if (key.equals("⌫")) {
+            button.setOnClickListener(v -> press("⌫"));
+
+            button.setOnLongClickListener(v -> {
+                clearAll();
+                return true;
+            });
+        }
     }
 
     // زر دائري حقيقي
@@ -134,6 +204,19 @@ public class MainActivity extends Activity {
     }
 
     private void addButton(LinearLayout line, String key) {
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(
+                        0, -1, 1f);
+
+        params.setMargins(3, 3, 3, 3);
+        params.gravity = Gravity.CENTER;
+
+        // مكان فارغ يحافظ على توزيع الأزرار
+        if (key.isEmpty()) {
+            line.addView(new View(this), params);
+            return;
+        }
 
         CircleButton button = new CircleButton(this);
 
@@ -196,24 +279,9 @@ public class MainActivity extends Activity {
                 key.length() > 2 ? 16 : 22
         );
 
-        LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(
-                        0, -1, 1f);
-
-        params.setMargins(3, 3, 3, 3);
-        params.gravity = Gravity.CENTER;
-
         line.addView(button, params);
 
         button.setOnClickListener(v -> press(key));
-
-        // ضغطة مطولة لمسح كل شيء
-        if (key.equals("⌫")) {
-            button.setOnLongClickListener(v -> {
-                clearAll();
-                return true;
-            });
-        }
     }
 
     private void clearAll() {
