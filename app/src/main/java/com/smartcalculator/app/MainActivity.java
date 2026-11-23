@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.*;
 import android.graphics.drawable.GradientDrawable;
+import android.content.Context;
 import java.text.DecimalFormat;
 
 public class MainActivity extends Activity {
@@ -36,87 +37,109 @@ public class MainActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(10, 12, 10, 12);
+        root.setPadding(8, 8, 8, 8);
         root.setBackgroundColor(BLACK);
 
-        // شاشة العملية الحسابية
+        // شاشة العملية
         expressionView = new TextView(this);
         expressionView.setTextColor(WHITE);
-        expressionView.setTextSize(25);
-        expressionView.setGravity(Gravity.CENTER);
+        expressionView.setTextSize(24);
+        expressionView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
         expressionView.setSingleLine(true);
-        expressionView.setIncludeFontPadding(false);
-        expressionView.setPadding(8, 5, 8, 5);
+        expressionView.setPadding(8, 4, 8, 4);
 
         // شاشة النتيجة
         resultView = new TextView(this);
         resultView.setTextColor(WHITE);
         resultView.setTextSize(36);
         resultView.setTypeface(null, Typeface.BOLD);
-        resultView.setGravity(Gravity.CENTER);
+        resultView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
         resultView.setSingleLine(true);
-        resultView.setIncludeFontPadding(false);
-        resultView.setPadding(8, 5, 8, 5);
+        resultView.setPadding(8, 4, 8, 4);
         resultView.setText("0");
 
         root.addView(expressionView,
-                new LinearLayout.LayoutParams(-1, 65));
+                new LinearLayout.LayoutParams(-1, 55));
 
         root.addView(resultView,
-                new LinearLayout.LayoutParams(-1, 75));
+                new LinearLayout.LayoutParams(-1, 70));
 
-        // مساحة مرنة
-        View spacer = new View(this);
-        root.addView(spacer,
-                new LinearLayout.LayoutParams(-1, 0, 1f));
+        // أزرار الحاسبة العلمية في الأعلى
+        String[][] scientificKeys = {
+            {"sin", "cos", "tan", "log"},
+            {"ln", "π", "e", "x²"},
+        };
 
-        // ترتيب الأزرار
-        String[][] keys = {
+        // الأزرار العادية
+        String[][] normalKeys = {
             {"AC", "()", "%", "÷"},
             {"7", "8", "9", "×"},
             {"4", "5", "6", "−"},
             {"1", "2", "3", "+"},
             {"+/−", "00", "0", "000"},
-            {"√", "⌫", ".", "="}
+            {"√", ".", "=", "⌫"}
         };
 
-        int widthDp = (int) (
-                getResources().getDisplayMetrics().widthPixels /
-                getResources().getDisplayMetrics().density
-        );
+        // العلمية أولاً
+        for (String[] row : scientificKeys) {
+            addRow(root, row);
+        }
 
-        // حجم موحد للدوائر
-        int buttonSize = Math.max(48,
-                (widthDp - 20 - 32) / 4);
-
-        for (String[] row : keys) {
-
-            LinearLayout line = new LinearLayout(this);
-            line.setGravity(Gravity.CENTER);
-            line.setOrientation(LinearLayout.HORIZONTAL);
-
-            for (String key : row) {
-                addButton(line, key, buttonSize);
-            }
-
-            root.addView(line,
-                    new LinearLayout.LayoutParams(
-                            -1, buttonSize + 8));
+        // العادية بعدها
+        for (String[] row : normalKeys) {
+            addRow(root, row);
         }
 
         setContentView(root);
     }
 
-    private void addButton(
-            LinearLayout line, String key, int buttonSize) {
+    // زر دائري حقيقي
+    private class CircleButton extends Button {
 
-        // زر دائري
-        Button button = new Button(this);
+        public CircleButton(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec,
+                                 int heightMeasureSpec) {
+
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+            int side = Math.min(
+                    getMeasuredWidth(),
+                    getMeasuredHeight()
+            );
+
+            setMeasuredDimension(side, side);
+        }
+    }
+
+    // إنشاء صف متساوٍ
+    private void addRow(LinearLayout root, String[] keys) {
+
+        LinearLayout line = new LinearLayout(this);
+        line.setOrientation(LinearLayout.HORIZONTAL);
+        line.setGravity(Gravity.CENTER);
+
+        for (String key : keys) {
+            addButton(line, key);
+        }
+
+        LinearLayout.LayoutParams rowParams =
+                new LinearLayout.LayoutParams(
+                        -1, 0, 1f);
+
+        root.addView(line, rowParams);
+    }
+
+    private void addButton(LinearLayout line, String key) {
+
+        CircleButton button = new CircleButton(this);
 
         button.setText(key);
-        button.setTextSize(23);
-        button.setTypeface(null, Typeface.BOLD);
         button.setAllCaps(false);
+        button.setTypeface(null, Typeface.BOLD);
         button.setGravity(Gravity.CENTER);
         button.setIncludeFontPadding(false);
         button.setPadding(0, 0, 0, 0);
@@ -135,7 +158,15 @@ public class MainActivity extends Activity {
                 key.equals("⌫") ||
                 key.equals("√") ||
                 key.equals("()") ||
-                key.equals("+/−");
+                key.equals("+/−") ||
+                key.equals("sin") ||
+                key.equals("cos") ||
+                key.equals("tan") ||
+                key.equals("log") ||
+                key.equals("ln") ||
+                key.equals("π") ||
+                key.equals("e") ||
+                key.equals("x²");
 
         boolean equals = key.equals("=");
 
@@ -161,42 +192,47 @@ public class MainActivity extends Activity {
         button.setBackground(circle);
         button.setStateListAnimator(null);
 
-        // عرض متساوٍ لكل زر مع دائرة مربعة
+        button.setTextSize(
+                key.length() > 2 ? 16 : 22
+        );
+
         LinearLayout.LayoutParams params =
                 new LinearLayout.LayoutParams(
-                        0, buttonSize, 1f);
+                        0, -1, 1f);
 
-        params.setMargins(4, 4, 4, 4);
+        params.setMargins(3, 3, 3, 3);
+        params.gravity = Gravity.CENTER;
 
         line.addView(button, params);
 
-        // ضغطة واحدة
         button.setOnClickListener(v -> press(key));
 
-        // ضغطة مطولة على الحذف تمسح الكل
+        // ضغطة مطولة لمسح كل شيء
         if (key.equals("⌫")) {
             button.setOnLongClickListener(v -> {
-                current = "";
-                justCalculated = false;
-                expressionView.setText("");
-                resultView.setText("0");
+                clearAll();
                 return true;
             });
         }
     }
 
+    private void clearAll() {
+        current = "";
+        justCalculated = false;
+        expressionView.setText("");
+        resultView.setText("0");
+    }
+
     private void press(String key) {
 
         if (key.equals("AC")) {
-            current = "";
-            justCalculated = false;
-            expressionView.setText("");
-            resultView.setText("0");
+            clearAll();
             return;
         }
 
-        // حذف رقم واحد
+        // حذف حرف واحد
         if (key.equals("⌫")) {
+
             justCalculated = false;
 
             if (!current.isEmpty()) {
@@ -209,48 +245,24 @@ public class MainActivity extends Activity {
         }
 
         if (key.equals("=")) {
-            if (current.isEmpty()) return;
-
-            try {
-                String oldExpression = current;
-                double value = calculate(current);
-
-                current = format(value);
-                expressionView.setText(oldExpression);
-                resultView.setText(current);
-                justCalculated = true;
-
-            } catch (Exception e) {
-                resultView.setText("خطأ");
-            }
-
+            calculateFinal();
             return;
         }
 
+        // الجذر التربيعي
         if (key.equals("√")) {
-            try {
-                double value = calculate(current);
-
-                if (value < 0) {
-                    resultView.setText("خطأ");
-                    return;
-                }
-
-                String oldExpression = current;
-                current = format(Math.sqrt(value));
-
-                expressionView.setText("√(" + oldExpression + ")");
-                resultView.setText(current);
-                justCalculated = true;
-
-            } catch (Exception e) {
-                resultView.setText("خطأ");
+            if (justCalculated) {
+                justCalculated = false;
             }
 
+            current += "sqrt(";
+            updateDisplay();
             return;
         }
 
+        // تغيير الإشارة
         if (key.equals("+/−")) {
+
             if (!current.isEmpty()) {
                 if (current.startsWith("-")) {
                     current = current.substring(1);
@@ -267,6 +279,7 @@ public class MainActivity extends Activity {
         }
 
         if (justCalculated) {
+
             boolean isNumber =
                     key.matches("[0-9]+") ||
                     key.equals(".");
@@ -279,24 +292,70 @@ public class MainActivity extends Activity {
             justCalculated = false;
         }
 
-        if (key.equals("()")) {
+        // الحاسبة العلمية
+        switch (key) {
 
-            if (current.isEmpty() ||
-                    endsWithOperator(current) ||
-                    current.endsWith("(")) {
-                current += "(";
-            } else {
-                current += ")";
-            }
+            case "sin":
+            case "cos":
+            case "tan":
+            case "log":
+            case "ln":
+                current += key + "(";
+                break;
 
-        } else {
-            current += key;
+            case "π":
+                current += "pi";
+                break;
+
+            case "e":
+                current += "e";
+                break;
+
+            case "x²":
+                current += "^2";
+                break;
+
+            case "()":
+
+                if (current.isEmpty() ||
+                        endsWithOperator(current) ||
+                        current.endsWith("(")) {
+                    current += "(";
+                } else {
+                    current += ")";
+                }
+                break;
+
+            default:
+                current += key;
+                break;
         }
 
         updateDisplay();
     }
 
-    // تحديث النتيجة أثناء الكتابة
+    // حساب النتيجة النهائية
+    private void calculateFinal() {
+
+        if (current.isEmpty()) return;
+
+        try {
+            String oldExpression = current;
+            double value = calculate(current);
+
+            current = format(value);
+
+            expressionView.setText(oldExpression);
+            resultView.setText(current);
+
+            justCalculated = true;
+
+        } catch (Exception e) {
+            resultView.setText("خطأ");
+        }
+    }
+
+    // تحديث النتيجة تلقائياً
     private void updateDisplay() {
 
         expressionView.setText(current);
@@ -316,13 +375,14 @@ public class MainActivity extends Activity {
     }
 
     private boolean endsWithOperator(String value) {
+
         if (value.isEmpty()) return true;
 
         char c = value.charAt(value.length() - 1);
 
         return c == '+' || c == '−' ||
                c == '×' || c == '÷' ||
-               c == '(';
+               c == '(' || c == '^';
     }
 
     private String format(double value) {
@@ -345,7 +405,7 @@ public class MainActivity extends Activity {
         return new Parser(input).parse();
     }
 
-    // محلل العمليات الحسابية
+    // محلل العمليات الحسابية والعلمية
     private static class Parser {
 
         private final String s;
@@ -353,9 +413,11 @@ public class MainActivity extends Activity {
         private int ch;
 
         Parser(String input) {
+
             s = input.replace("×", "*")
                      .replace("÷", "/")
-                     .replace("−", "-");
+                     .replace("−", "-")
+                     .replace("π", "pi");
         }
 
         void nextChar() {
@@ -414,16 +476,16 @@ public class MainActivity extends Activity {
 
         double term() {
 
-            double value = factor();
+            double value = power();
 
             while (true) {
 
                 if (eat('*')) {
-                    value *= factor();
+                    value *= power();
 
                 } else if (eat('/')) {
 
-                    double divisor = factor();
+                    double divisor = power();
 
                     if (divisor == 0) {
                         throw new RuntimeException(
@@ -438,6 +500,17 @@ public class MainActivity extends Activity {
             }
         }
 
+        double power() {
+
+            double value = factor();
+
+            if (eat('^')) {
+                value = Math.pow(value, power());
+            }
+
+            return value;
+        }
+
         double factor() {
 
             if (eat('+')) return factor();
@@ -450,10 +523,11 @@ public class MainActivity extends Activity {
                 value = expression();
 
                 if (!eat(')')) {
-                    throw new RuntimeException("قوس غير مكتمل");
+                    throw new RuntimeException(
+                            "قوس غير مكتمل");
                 }
 
-            } else {
+            } else if ((ch >= '0' && ch <= '9') || ch == '.') {
 
                 int start = pos;
                 boolean hasDigit = false;
@@ -475,11 +549,92 @@ public class MainActivity extends Activity {
                 }
 
                 if (!hasDigit) {
-                    throw new RuntimeException("رقم غير صحيح");
+                    throw new RuntimeException(
+                            "رقم غير صحيح");
                 }
 
                 value = Double.parseDouble(
                         s.substring(start, pos));
+
+            } else if (Character.isLetter(ch)) {
+
+                int start = pos;
+
+                while (Character.isLetter(ch)) {
+                    nextChar();
+                }
+
+                String name = s.substring(start, pos);
+
+                switch (name) {
+
+                    case "pi":
+                        value = Math.PI;
+                        break;
+
+                    case "e":
+                        value = Math.E;
+                        break;
+
+                    case "sin":
+                    case "cos":
+                    case "tan":
+                    case "log":
+                    case "ln":
+                    case "sqrt":
+
+                        if (!eat('(')) {
+                            throw new RuntimeException(
+                                    "قوس مطلوب");
+                        }
+
+                        double argument = expression();
+
+                        if (!eat(')')) {
+                            throw new RuntimeException(
+                                    "قوس غير مكتمل");
+                        }
+
+                        switch (name) {
+
+                            case "sin":
+                                value = Math.sin(
+                                        Math.toRadians(argument));
+                                break;
+
+                            case "cos":
+                                value = Math.cos(
+                                        Math.toRadians(argument));
+                                break;
+
+                            case "tan":
+                                value = Math.tan(
+                                        Math.toRadians(argument));
+                                break;
+
+                            case "log":
+                                value = Math.log10(argument);
+                                break;
+
+                            case "ln":
+                                value = Math.log(argument);
+                                break;
+
+                            default:
+                                value = Math.sqrt(argument);
+                                break;
+                        }
+
+                        break;
+
+                    default:
+                        throw new RuntimeException(
+                                "عملية غير معروفة");
+                }
+
+            } else {
+                throw new RuntimeException(
+                        "رقم غير صحيح");
             }
 
             while (eat('%')) {
