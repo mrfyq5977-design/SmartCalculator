@@ -5,24 +5,34 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <!-- الخلفية الذهبية -->
     <path
         android:fillColor="#D4A62B"
         android:pathData="M0,0 H108 V108 H0 Z"/>
 
+    <!-- جسم الآلة الحاسبة -->
     <path
-        android:fillColor="#111111"
-        android:pathData="M20,12 H88 Q96,12 96,20 V88 Q96,96 88,96 H20 Q12,96 12,88 V20 Q12,12 20,12 Z"/>
+        android:fillColor="#101014"
+        android:pathData="M20,9 H88 Q99,9 99,20 V88 Q99,99 88,99 H20 Q9,99 9,88 V20 Q9,9 20,9 Z"/>
 
+    <!-- الشاشة -->
     <path
-        android:fillColor="#D4A62B"
-        android:pathData="M25,22 H83 V42 H25 Z"/>
+        android:fillColor="#29251B"
+        android:pathData="M23,19 H85 Q89,19 89,23 V40 Q89,44 85,44 H23 Q19,44 19,40 V23 Q19,19 23,19 Z"/>
 
+    <!-- الرقم -->
     <path
         android:fillColor="#F5D278"
-        android:pathData="M30,28 H78 V35 H30 Z"/>
+        android:pathData="M64,24 H78 V27 H64 Z M78,27 H81 V36 H78 Z M78,36 H81 V39 H78 Z M64,36 H78 V39 H64 Z M61,27 H64 V36 H61 Z"/>
 
+    <!-- أزرار الآلة -->
     <path
         android:fillColor="#D4A62B"
-        android:pathData="M25,50 H38 V63 H25 Z M47,50 H60 V63 H47 Z M69,50 H82 V63 H69 Z M25,70 H38 V83 H25 Z M47,70 H60 V83 H47 Z M69,70 H82 V83 H69 Z"/>
+        android:pathData="M21,51 H37 V65 H21 Z M46,51 H62 V65 H46 Z M71,51 H87 V65 H71 Z M21,73 H37 V87 H21 Z M46,73 H62 V87 H46 Z"/>
+
+    <!-- زر يساوي -->
+    <path
+        android:fillColor="#F5D278"
+        android:pathData="M71,73 H87 V87 H71 Z"/>
 
 </vector>
