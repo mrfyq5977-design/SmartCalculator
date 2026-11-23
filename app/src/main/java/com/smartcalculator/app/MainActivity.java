@@ -36,25 +36,27 @@ public class MainActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(12, 18, 12, 12);
+        root.setPadding(10, 12, 10, 12);
         root.setBackgroundColor(BLACK);
 
-        // خانة العملية الحسابية
+        // شاشة العملية الحسابية
         expressionView = new TextView(this);
         expressionView.setTextColor(WHITE);
         expressionView.setTextSize(25);
-        expressionView.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        expressionView.setGravity(Gravity.CENTER);
         expressionView.setSingleLine(true);
-        expressionView.setPadding(8, 8, 8, 4);
+        expressionView.setIncludeFontPadding(false);
+        expressionView.setPadding(8, 5, 8, 5);
 
-        // خانة النتيجة التلقائية
+        // شاشة النتيجة
         resultView = new TextView(this);
         resultView.setTextColor(WHITE);
         resultView.setTextSize(36);
         resultView.setTypeface(null, Typeface.BOLD);
-        resultView.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        resultView.setGravity(Gravity.CENTER);
         resultView.setSingleLine(true);
-        resultView.setPadding(8, 4, 8, 12);
+        resultView.setIncludeFontPadding(false);
+        resultView.setPadding(8, 5, 8, 5);
         resultView.setText("0");
 
         root.addView(expressionView,
@@ -63,12 +65,12 @@ public class MainActivity extends Activity {
         root.addView(resultView,
                 new LinearLayout.LayoutParams(-1, 75));
 
-        // المساحة التي تنزل الأزرار إلى أسفل الشاشة
+        // مساحة مرنة
         View spacer = new View(this);
         root.addView(spacer,
                 new LinearLayout.LayoutParams(-1, 0, 1f));
 
-        // ترتيب الأزرار مثل الصورة
+        // ترتيب الأزرار
         String[][] keys = {
             {"AC", "()", "%", "÷"},
             {"7", "8", "9", "×"},
@@ -83,8 +85,9 @@ public class MainActivity extends Activity {
                 getResources().getDisplayMetrics().density
         );
 
+        // حجم موحد للدوائر
         int buttonSize = Math.max(48,
-                (widthDp - 28 - 32) / 4);
+                (widthDp - 20 - 32) / 4);
 
         for (String[] row : keys) {
 
@@ -107,6 +110,7 @@ public class MainActivity extends Activity {
     private void addButton(
             LinearLayout line, String key, int buttonSize) {
 
+        // زر دائري
         Button button = new Button(this);
 
         button.setText(key);
@@ -114,9 +118,12 @@ public class MainActivity extends Activity {
         button.setTypeface(null, Typeface.BOLD);
         button.setAllCaps(false);
         button.setGravity(Gravity.CENTER);
+        button.setIncludeFontPadding(false);
         button.setPadding(0, 0, 0, 0);
         button.setMinWidth(0);
         button.setMinHeight(0);
+        button.setMinimumWidth(0);
+        button.setMinimumHeight(0);
 
         boolean operation =
                 key.equals("÷") ||
@@ -154,15 +161,28 @@ public class MainActivity extends Activity {
         button.setBackground(circle);
         button.setStateListAnimator(null);
 
+        // عرض متساوٍ لكل زر مع دائرة مربعة
         LinearLayout.LayoutParams params =
                 new LinearLayout.LayoutParams(
-                        0, buttonSize, 1);
+                        0, buttonSize, 1f);
 
         params.setMargins(4, 4, 4, 4);
 
         line.addView(button, params);
 
+        // ضغطة واحدة
         button.setOnClickListener(v -> press(key));
+
+        // ضغطة مطولة على الحذف تمسح الكل
+        if (key.equals("⌫")) {
+            button.setOnLongClickListener(v -> {
+                current = "";
+                justCalculated = false;
+                expressionView.setText("");
+                resultView.setText("0");
+                return true;
+            });
+        }
     }
 
     private void press(String key) {
@@ -175,6 +195,7 @@ public class MainActivity extends Activity {
             return;
         }
 
+        // حذف رقم واحد
         if (key.equals("⌫")) {
             justCalculated = false;
 
