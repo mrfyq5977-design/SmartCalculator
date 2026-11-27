@@ -5,12 +5,15 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.content.Context;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.widget.*;
-import android.graphics.drawable.GradientDrawable;
-import android.content.Context;
+
 import java.text.DecimalFormat;
 
 public class MainActivity extends Activity {
@@ -18,9 +21,13 @@ public class MainActivity extends Activity {
     private TextView expressionView;
     private TextView resultView;
     private LinearLayout scientificPanel;
+    private LinearLayout normalPanel;
+    private LinearLayout keypadPanel;
 
     private String current = "";
     private boolean justCalculated = false;
+
+    private float screenScale = 1f;
 
     private final int BLACK = Color.rgb(5, 5, 5);
     private final int GOLD = Color.rgb(210, 165, 45);
@@ -28,9 +35,39 @@ public class MainActivity extends Activity {
     private final int WHITE = Color.WHITE;
     private final int BUTTON_BLACK = Color.rgb(27, 27, 27);
 
+    private int dp(float value) {
+        return (int)(value * screenScale + 0.5f);
+    }
+
+    private void textSize(TextView view, float size) {
+        view.setTextSize(
+                TypedValue.COMPLEX_UNIT_SP,
+                size * screenScale
+        );
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        DisplayMetrics metrics =
+                getResources().getDisplayMetrics();
+
+        float widthDp =
+                metrics.widthPixels / metrics.density;
+
+        float heightDp =
+                metrics.heightPixels / metrics.density;
+
+        screenScale = Math.min(
+                widthDp / 360f,
+                heightDp / 640f
+        );
+
+        screenScale = Math.max(
+                0.65f,
+                Math.min(1f, screenScale)
+        );
 
         Window window = getWindow();
         window.setStatusBarColor(BLACK);
@@ -38,86 +75,97 @@ public class MainActivity extends Activity {
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(8, 8, 8, 8);
+        root.setPadding(
+                dp(8), dp(8), dp(8), dp(8)
+        );
         root.setBackgroundColor(BLACK);
+        root.setClipChildren(false);
 
         expressionView = new TextView(this);
         expressionView.setTextColor(WHITE);
-        expressionView.setTextSize(24);
-        expressionView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        textSize(expressionView, 24);
+        expressionView.setGravity(
+                Gravity.RIGHT | Gravity.CENTER_VERTICAL
+        );
         expressionView.setSingleLine(true);
-        expressionView.setPadding(8, 4, 8, 4);
+        expressionView.setPadding(dp(8), dp(4), dp(8), dp(4));
 
         resultView = new TextView(this);
         resultView.setTextColor(WHITE);
-        resultView.setTextSize(36);
+        textSize(resultView, 36);
         resultView.setTypeface(null, Typeface.BOLD);
-        resultView.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        resultView.setGravity(
+                Gravity.RIGHT | Gravity.CENTER_VERTICAL
+        );
         resultView.setSingleLine(true);
-        resultView.setPadding(8, 4, 8, 4);
+        resultView.setPadding(dp(8), dp(4), dp(8), dp(4));
         resultView.setText("0");
 
         root.addView(expressionView,
-                new LinearLayout.LayoutParams(-1, 55));
+                new LinearLayout.LayoutParams(-1, dp(55)));
 
         root.addView(resultView,
-                new LinearLayout.LayoutParams(-1, 70));
+                new LinearLayout.LayoutParams(-1, dp(70)));
 
-        // مساحة مرنة بين النتيجة ولوحة الأزرار
         View space = new View(this);
+
         root.addView(space,
                 new LinearLayout.LayoutParams(-1, 0, 2f));
 
-        // لوحة الأزرار تستغل المساحة المتبقية
-        LinearLayout keypadPanel = new LinearLayout(this);
+        keypadPanel = new LinearLayout(this);
         keypadPanel.setOrientation(LinearLayout.VERTICAL);
+        keypadPanel.setClipChildren(false);
 
         root.addView(keypadPanel,
                 new LinearLayout.LayoutParams(-1, 0, 5f));
 
-        // زر الحذف و SCI
+        // شريط الأدوات - اليسار
         LinearLayout toolbar = new LinearLayout(this);
         toolbar.setOrientation(LinearLayout.HORIZONTAL);
-        toolbar.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        toolbar.setGravity(
+                Gravity.LEFT | Gravity.CENTER_VERTICAL
+        );
         toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
 
-        addToolbarButton(toolbar, "⌫");
-        addToolbarButton(toolbar, "SCI");
-
         keypadPanel.addView(toolbar,
-                new LinearLayout.LayoutParams(-1, 38));
+                new LinearLayout.LayoutParams(-1, dp(38)));
 
-        // الحاسبة العلمية مخفية في البداية
+        addToolbarButton(toolbar, "SCI");
+        addToolbarButton(toolbar, "⌫");
+
+        // اللوحة العلمية
         scientificPanel = new LinearLayout(this);
         scientificPanel.setOrientation(LinearLayout.VERTICAL);
         scientificPanel.setVisibility(View.GONE);
+        scientificPanel.setClipChildren(false);
 
         keypadPanel.addView(scientificPanel,
                 new LinearLayout.LayoutParams(-1, 0, 2f));
 
         String[][] scientificKeys = {
-            {"sin", "cos", "tan", "log"},
-            {"ln", "π", "e", "x²"},
-            {"√", "", "", ""}
+                {"sin", "cos", "tan", "log"},
+                {"ln", "π", "e", "x²"},
+                {"√", "", "", ""}
         };
 
         for (String[] row : scientificKeys) {
             addRow(scientificPanel, row);
         }
 
-        // الأزرار العادية بنفس ترتيب الصورة الأولى
-        LinearLayout normalPanel = new LinearLayout(this);
+        // اللوحة العادية
+        normalPanel = new LinearLayout(this);
         normalPanel.setOrientation(LinearLayout.VERTICAL);
+        normalPanel.setClipChildren(false);
 
         keypadPanel.addView(normalPanel,
                 new LinearLayout.LayoutParams(-1, 0, 5f));
 
         String[][] normalKeys = {
-            {"AC", "()", "%", "÷"},
-            {"7", "8", "9", "×"},
-            {"4", "5", "6", "−"},
-            {"1", "2", "3", "+"},
-            {"+/−", "0", ".", "="}
+                {"AC", "()", "%", "÷"},
+                {"7", "8", "9", "×"},
+                {"4", "5", "6", "−"},
+                {"1", "2", "3", "+"},
+                {"+/−", "0", ".", "="}
         };
 
         for (String[] row : normalKeys) {
@@ -127,35 +175,46 @@ public class MainActivity extends Activity {
         setContentView(root);
     }
 
-    // زر الحذف وزر العلمية
-    private void addToolbarButton(LinearLayout toolbar, String key) {
+    private void addToolbarButton(
+            LinearLayout toolbar,
+            String key
+    ) {
 
         TextView button = new TextView(this);
 
         button.setText(key);
         button.setTextColor(GOLD_LIGHT);
-        button.setTextSize(key.equals("SCI") ? 15 : 25);
+
+        textSize(button, key.equals("SCI") ? 15 : 25);
+
         button.setTypeface(null, Typeface.BOLD);
         button.setGravity(Gravity.CENTER);
-        button.setPadding(3, 0, 3, 0);
+        button.setPadding(dp(3), 0, dp(3), 0);
 
         LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(42, 38);
+                new LinearLayout.LayoutParams(
+                        dp(42), dp(38)
+                );
 
-        params.setMargins(2, 0, 2, 0);
+        params.setMargins(dp(2), 0, dp(2), 0);
         toolbar.addView(button, params);
 
         if (key.equals("SCI")) {
             button.setOnClickListener(v -> {
+
                 if (scientificPanel.getVisibility() == View.GONE) {
+
                     scientificPanel.setVisibility(View.VISIBLE);
+
                 } else {
+
                     scientificPanel.setVisibility(View.GONE);
                 }
             });
         }
 
         if (key.equals("⌫")) {
+
             button.setOnClickListener(v -> press("⌫"));
 
             button.setOnLongClickListener(v -> {
@@ -173,8 +232,10 @@ public class MainActivity extends Activity {
         }
 
         @Override
-        protected void onMeasure(int widthMeasureSpec,
-                                 int heightMeasureSpec) {
+        protected void onMeasure(
+                int widthMeasureSpec,
+                int heightMeasureSpec
+        ) {
 
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
@@ -187,29 +248,37 @@ public class MainActivity extends Activity {
         }
     }
 
-    // صفوف مرنة تتكيف مع حجم الشاشة
-    private void addRow(LinearLayout root, String[] keys) {
+    private void addRow(
+            LinearLayout root,
+            String[] keys
+    ) {
 
         LinearLayout line = new LinearLayout(this);
         line.setOrientation(LinearLayout.HORIZONTAL);
         line.setGravity(Gravity.CENTER);
+        line.setClipChildren(false);
+        line.setClipToPadding(false);
 
         for (String key : keys) {
             addButton(line, key);
         }
 
-        LinearLayout.LayoutParams rowParams =
-                new LinearLayout.LayoutParams(-1, 0, 1f);
-
-        root.addView(line, rowParams);
+        root.addView(line,
+                new LinearLayout.LayoutParams(-1, 0, 1f));
     }
 
-    private void addButton(LinearLayout line, String key) {
+    private void addButton(
+            LinearLayout line,
+            String key
+    ) {
 
         LinearLayout.LayoutParams params =
                 new LinearLayout.LayoutParams(0, -1, 1f);
 
-        params.setMargins(3, 3, 3, 3);
+        params.setMargins(
+                dp(3), dp(3), dp(3), dp(3)
+        );
+
         params.gravity = Gravity.CENTER;
 
         if (key.isEmpty()) {
@@ -225,6 +294,7 @@ public class MainActivity extends Activity {
         button.setGravity(Gravity.CENTER);
         button.setIncludeFontPadding(false);
         button.setPadding(0, 0, 0, 0);
+
         button.setMinWidth(0);
         button.setMinHeight(0);
         button.setMinimumWidth(0);
@@ -255,24 +325,28 @@ public class MainActivity extends Activity {
         circle.setShape(GradientDrawable.OVAL);
 
         if (equals) {
+
             circle.setColor(GOLD_LIGHT);
-            circle.setStroke(2, GOLD_LIGHT);
+            circle.setStroke(dp(2), GOLD_LIGHT);
             button.setTextColor(BLACK);
 
         } else if (operation) {
+
             circle.setColor(GOLD);
-            circle.setStroke(1, GOLD_LIGHT);
+            circle.setStroke(dp(1), GOLD_LIGHT);
             button.setTextColor(BLACK);
 
         } else {
+
             circle.setColor(BUTTON_BLACK);
-            circle.setStroke(2, GOLD);
+            circle.setStroke(dp(2), GOLD);
             button.setTextColor(WHITE);
         }
 
         button.setBackground(circle);
         button.setStateListAnimator(null);
-        button.setTextSize(key.length() > 2 ? 16 : 22);
+
+        textSize(button, key.length() > 2 ? 16 : 22);
 
         line.addView(button, params);
 
@@ -294,11 +368,13 @@ public class MainActivity extends Activity {
         }
 
         if (key.equals("⌫")) {
+
             justCalculated = false;
 
             if (!current.isEmpty()) {
                 current = current.substring(
-                        0, current.length() - 1);
+                        0, current.length() - 1
+                );
             }
 
             updateDisplay();
@@ -320,11 +396,13 @@ public class MainActivity extends Activity {
         if (key.equals("+/−")) {
 
             if (!current.isEmpty()) {
+
                 if (current.startsWith("-")) {
                     current = current.substring(1);
                 } else {
                     current = "-" + current;
                 }
+
             } else {
                 current = "-";
             }
@@ -375,10 +453,13 @@ public class MainActivity extends Activity {
                 if (current.isEmpty() ||
                         endsWithOperator(current) ||
                         current.endsWith("(")) {
+
                     current += "(";
+
                 } else {
                     current += ")";
                 }
+
                 break;
 
             default:
@@ -394,6 +475,7 @@ public class MainActivity extends Activity {
         if (current.isEmpty()) return;
 
         try {
+
             String oldExpression = current;
             double value = calculate(current);
 
@@ -405,6 +487,7 @@ public class MainActivity extends Activity {
             justCalculated = true;
 
         } catch (Exception e) {
+
             resultView.setText("خطأ");
         }
     }
@@ -419,10 +502,12 @@ public class MainActivity extends Activity {
         }
 
         try {
+
             double value = calculate(current);
             resultView.setText(format(value));
 
         } catch (Exception e) {
+
             resultView.setText("");
         }
     }
@@ -433,9 +518,12 @@ public class MainActivity extends Activity {
 
         char c = value.charAt(value.length() - 1);
 
-        return c == '+' || c == '−' ||
-               c == '×' || c == '÷' ||
-               c == '(' || c == '^';
+        return c == '+' ||
+                c == '−' ||
+                c == '×' ||
+                c == '÷' ||
+                c == '(' ||
+                c == '^';
     }
 
     private String format(double value) {
@@ -468,9 +556,9 @@ public class MainActivity extends Activity {
         Parser(String input) {
 
             s = input.replace("×", "*")
-                     .replace("÷", "/")
-                     .replace("−", "-")
-                     .replace("π", "pi");
+                    .replace("÷", "/")
+                    .replace("−", "-")
+                    .replace("π", "pi");
         }
 
         void nextChar() {
@@ -587,10 +675,13 @@ public class MainActivity extends Activity {
                 while ((ch >= '0' && ch <= '9') || ch == '.') {
 
                     if (ch == '.') {
+
                         if (hasDot) {
                             throw new RuntimeException("رقم غير صحيح");
                         }
+
                         hasDot = true;
+
                     } else {
                         hasDigit = true;
                     }
@@ -602,7 +693,9 @@ public class MainActivity extends Activity {
                     throw new RuntimeException("رقم غير صحيح");
                 }
 
-                value = Double.parseDouble(s.substring(start, pos));
+                value = Double.parseDouble(
+                        s.substring(start, pos)
+                );
 
             } else if (Character.isLetter(ch)) {
 
@@ -644,15 +737,21 @@ public class MainActivity extends Activity {
                         switch (name) {
 
                             case "sin":
-                                value = Math.sin(Math.toRadians(argument));
+                                value = Math.sin(
+                                        Math.toRadians(argument)
+                                );
                                 break;
 
                             case "cos":
-                                value = Math.cos(Math.toRadians(argument));
+                                value = Math.cos(
+                                        Math.toRadians(argument)
+                                );
                                 break;
 
                             case "tan":
-                                value = Math.tan(Math.toRadians(argument));
+                                value = Math.tan(
+                                        Math.toRadians(argument)
+                                );
                                 break;
 
                             case "log":
